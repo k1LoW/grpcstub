@@ -52,48 +52,6 @@ func TestUnary(t *testing.T) {
 	}
 }
 
-func TestClientStreaming(t *testing.T) {
-	ctx := context.Background()
-	ts := NewServer(t, []string{}, "testdata/route_guide.proto")
-	t.Cleanup(func() {
-		ts.Close()
-	})
-	ts.Method("RecordRoute").Response(map[string]interface{}{"point_count": 2, "feature_count": 2, "distance": 10, "elapsed_time": 345})
-
-	client := routeguide.NewRouteGuideClient(ts.Conn())
-	stream, err := client.RecordRoute(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	c := 2
-	for i := 0; i < c; i++ {
-		if err := stream.Send(&routeguide.Point{
-			Latitude:  int32(i + 10),
-			Longitude: int32(i * i * 2),
-		}); err != nil {
-			t.Fatal(err)
-		}
-	}
-	res, err := stream.CloseAndRecv()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	{
-		got := res.PointCount
-		if want := int32(2); got != want {
-			t.Errorf("got %v\nwant %v", got, want)
-		}
-	}
-
-	{
-		got := len(ts.Requests())
-		if want := 2; got != want {
-			t.Errorf("got %v\nwant %v", got, want)
-		}
-	}
-}
-
 func TestServerStreaming(t *testing.T) {
 	ctx := context.Background()
 	ts := NewServer(t, []string{}, "testdata/route_guide.proto")
@@ -146,6 +104,48 @@ func TestServerStreaming(t *testing.T) {
 	{
 		got := len(ts.Requests())
 		if want := 1; got != want {
+			t.Errorf("got %v\nwant %v", got, want)
+		}
+	}
+}
+
+func TestClientStreaming(t *testing.T) {
+	ctx := context.Background()
+	ts := NewServer(t, []string{}, "testdata/route_guide.proto")
+	t.Cleanup(func() {
+		ts.Close()
+	})
+	ts.Method("RecordRoute").Response(map[string]interface{}{"point_count": 2, "feature_count": 2, "distance": 10, "elapsed_time": 345})
+
+	client := routeguide.NewRouteGuideClient(ts.Conn())
+	stream, err := client.RecordRoute(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	c := 2
+	for i := 0; i < c; i++ {
+		if err := stream.Send(&routeguide.Point{
+			Latitude:  int32(i + 10),
+			Longitude: int32(i * i * 2),
+		}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	res, err := stream.CloseAndRecv()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	{
+		got := res.PointCount
+		if want := int32(2); got != want {
+			t.Errorf("got %v\nwant %v", got, want)
+		}
+	}
+
+	{
+		got := len(ts.Requests())
+		if want := 2; got != want {
 			t.Errorf("got %v\nwant %v", got, want)
 		}
 	}
@@ -415,5 +415,176 @@ func TestResponseHeader(t *testing.T) {
 	got := r.Headers.Get("authentication")
 	if want := "XXXXxxxxXXXX"; got[0] != want {
 		t.Errorf("got %v\nwant %v", got[0], want)
+	}
+}
+
+func TestStatusUnary(t *testing.T) {
+	ctx := context.Background()
+	ts := NewServer(t, []string{}, "testdata/route_guide.proto")
+	t.Cleanup(func() {
+		ts.Close()
+	})
+	ts.Method("GetFeature").Status(status.New(codes.Aborted, "aborted"))
+	client := routeguide.NewRouteGuideClient(ts.Conn())
+
+	_, err := client.GetFeature(ctx, &routeguide.Point{})
+	if err == nil {
+		t.Error("want error")
+		return
+	}
+
+	s, ok := status.FromError(err)
+	if !ok {
+		t.Error("want status.Status")
+		return
+	}
+	{
+		got := s.Code()
+		if want := codes.Aborted; got != want {
+			t.Errorf("got %v\nwant %v", got, want)
+		}
+	}
+	{
+		got := s.Message()
+		if want := "aborted"; got != want {
+			t.Errorf("got %v\nwant %v", got, want)
+		}
+	}
+}
+
+func TestStatusServerStreaming(t *testing.T) {
+	ctx := context.Background()
+	ts := NewServer(t, []string{}, "testdata/route_guide.proto")
+	t.Cleanup(func() {
+		ts.Close()
+	})
+	ts.Method("ListFeatures").Status(status.New(codes.Aborted, "aborted"))
+
+	client := routeguide.NewRouteGuideClient(ts.Conn())
+	stream, err := client.ListFeatures(ctx, &routeguide.Rectangle{
+		Lo: &routeguide.Point{
+			Latitude:  int32(10),
+			Longitude: int32(2),
+		},
+		Hi: &routeguide.Point{
+			Latitude:  int32(20),
+			Longitude: int32(7),
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = stream.Recv()
+	if err == nil {
+		t.Error("want error")
+	}
+	s, ok := status.FromError(err)
+	if !ok {
+		t.Error("want status.Status")
+		return
+	}
+	{
+		got := s.Code()
+		if want := codes.Aborted; got != want {
+			t.Errorf("got %v\nwant %v", got, want)
+		}
+	}
+	{
+		got := s.Message()
+		if want := "aborted"; got != want {
+			t.Errorf("got %v\nwant %v", got, want)
+		}
+	}
+}
+
+func TestStatusClientStreaming(t *testing.T) {
+	ctx := context.Background()
+	ts := NewServer(t, []string{}, "testdata/route_guide.proto")
+	t.Cleanup(func() {
+		ts.Close()
+	})
+	ts.Method("RecordRoute").Status(status.New(codes.Aborted, "aborted"))
+
+	client := routeguide.NewRouteGuideClient(ts.Conn())
+	stream, err := client.RecordRoute(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	c := 2
+	for i := 0; i < c; i++ {
+		if err := stream.Send(&routeguide.Point{
+			Latitude:  int32(i + 10),
+			Longitude: int32(i * i * 2),
+		}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	_, err = stream.CloseAndRecv()
+	if err == nil {
+		t.Error("want error")
+		return
+	}
+
+	s, ok := status.FromError(err)
+	if !ok {
+		t.Error("want status.Status")
+		return
+	}
+	{
+		got := s.Code()
+		if want := codes.Aborted; got != want {
+			t.Errorf("got %v\nwant %v", got, want)
+		}
+	}
+	{
+		got := s.Message()
+		if want := "aborted"; got != want {
+			t.Errorf("got %v\nwant %v", got, want)
+		}
+	}
+}
+
+func TestStatusBiStreaming(t *testing.T) {
+	ctx := context.Background()
+	ts := NewServer(t, []string{}, "testdata/route_guide.proto")
+	t.Cleanup(func() {
+		ts.Close()
+	})
+	ts.Method("RouteChat").Status(status.New(codes.Aborted, "aborted"))
+
+	client := routeguide.NewRouteGuideClient(ts.Conn())
+	stream, err := client.RouteChat(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := stream.SendMsg(&routeguide.RouteNote{
+		Message: "hello from client",
+	}); err != nil {
+		t.Fatal(err)
+	}
+	_, err = stream.Recv()
+	if err == nil {
+		t.Error("want error")
+		return
+	}
+
+	s, ok := status.FromError(err)
+	if !ok {
+		t.Error("want status.Status")
+		return
+	}
+	{
+		got := s.Code()
+		if want := codes.Aborted; got != want {
+			t.Errorf("got %v\nwant %v", got, want)
+		}
+	}
+	{
+		got := s.Message()
+		if want := "aborted"; got != want {
+			t.Errorf("got %v\nwant %v", got, want)
+		}
 	}
 }

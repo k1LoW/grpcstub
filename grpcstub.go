@@ -295,6 +295,27 @@ func (m *matcher) ResponseString(message string) *matcher {
 	return m.Response(mes)
 }
 
+// Status set status which return response.
+func (m *matcher) Status(s *status.Status) *matcher {
+	var fn handlerFunc
+	if m.handler == nil {
+		fn = func(r *Request) *Response {
+			res := NewResponse()
+			res.Status = s
+			return res
+		}
+	} else {
+		prev := m.handler
+		fn = func(r *Request) *Response {
+			res := prev(r)
+			res.Status = s
+			return res
+		}
+	}
+	m.handler = fn
+	return m
+}
+
 // Requests returns []*grpcstub.Request received by router.
 func (s *Server) Requests() []*Request {
 	s.mu.RLock()
@@ -406,6 +427,9 @@ func (s *Server) createUnaryHandler(md *desc.MethodDescriptor) func(srv interfac
 						}
 					}
 				}
+				if res.Status != nil && res.Status.Err() != nil {
+					return nil, res.Status.Err()
+				}
 				mes = msgFactory.NewMessage(md.GetOutputType())
 				if len(res.Messages) > 0 {
 					b, err := json.Marshal(res.Messages[0])
@@ -486,6 +510,9 @@ func (s *Server) createServerStreamingHandler(md *desc.MethodDescriptor) func(sr
 						stream.SetTrailer(metadata.Pairs(k, vv))
 					}
 				}
+				if res.Status != nil && res.Status.Err() != nil {
+					return res.Status.Err()
+				}
 				if len(res.Messages) > 0 {
 					for _, resm := range res.Messages {
 						mes := msgFactory.NewMessage(md.GetOutputType())
@@ -548,6 +575,9 @@ func (s *Server) createClientStreamingHandler(md *desc.MethodDescriptor) func(sr
 							m.requests = append(m.requests, r)
 							m.mu.Unlock()
 							res := m.handler(r)
+							if res.Status != nil && res.Status.Err() != nil {
+								return res.Status.Err()
+							}
 							mes = msgFactory.NewMessage(md.GetOutputType())
 							if len(res.Messages) > 0 {
 								b, err := json.Marshal(res.Messages[0])
@@ -635,6 +665,9 @@ func (s *Server) createBiStreamingHandler(md *desc.MethodDescriptor) func(srv in
 						for _, vv := range v {
 							stream.SetTrailer(metadata.Pairs(k, vv))
 						}
+					}
+					if res.Status != nil && res.Status.Err() != nil {
+						return res.Status.Err()
 					}
 					if len(res.Messages) > 0 {
 						for _, resm := range res.Messages {
