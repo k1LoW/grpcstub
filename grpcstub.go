@@ -59,6 +59,7 @@ type Response struct {
 	Status   *status.Status
 }
 
+// NewResponse returns a new empty response
 func NewResponse() *Response {
 	return &Response{
 		Headers:  metadata.MD{},
@@ -88,6 +89,7 @@ type matcher struct {
 type matchFunc func(r *Request) bool
 type handlerFunc func(r *Request) *Response
 
+// NewServer returns a new server with registered *grpc.Server
 func NewServer(t *testing.T, importPaths []string, protos ...string) *Server {
 	t.Helper()
 	fds, err := descriptorFromFiles(importPaths, protos...)
@@ -104,6 +106,7 @@ func NewServer(t *testing.T, importPaths []string, protos ...string) *Server {
 	return s
 }
 
+// Close shuts down *grpc.Server
 func (s *Server) Close() {
 	s.t.Helper()
 	if s.listener == nil {
@@ -126,6 +129,7 @@ func (s *Server) Close() {
 	}
 }
 
+// Conn returns *grpc.ClientConn which connects *grpc.Server.
 func (s *Server) Conn() *grpc.ClientConn {
 	s.t.Helper()
 	if s.listener == nil {
@@ -155,6 +159,7 @@ func (s *Server) startServer() {
 	}()
 }
 
+// Match create request matcher with matchFunc (func(r *grpcstub.Request) bool).
 func (s *Server) Match(fn func(r *Request) bool) *matcher {
 	m := &matcher{
 		matchFuncs: []matchFunc{fn},
@@ -165,6 +170,7 @@ func (s *Server) Match(fn func(r *Request) bool) *matcher {
 	return m
 }
 
+// Match append matchFunc (func(r *grpcstub.Request) bool) to request matcher.
 func (m *matcher) Match(fn func(r *Request) bool) *matcher {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -172,6 +178,7 @@ func (m *matcher) Match(fn func(r *Request) bool) *matcher {
 	return m
 }
 
+// Method create request matcher using service.
 func (s *Server) Service(service string) *matcher {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -183,6 +190,7 @@ func (s *Server) Service(service string) *matcher {
 	return m
 }
 
+// Method append request matcher using service.
 func (m *matcher) Service(service string) *matcher {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -191,6 +199,7 @@ func (m *matcher) Service(service string) *matcher {
 	return m
 }
 
+// Method create request matcher using method.
 func (s *Server) Method(method string) *matcher {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -202,6 +211,7 @@ func (s *Server) Method(method string) *matcher {
 	return m
 }
 
+// Method append request matcher using method.
 func (m *matcher) Method(method string) *matcher {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -210,6 +220,7 @@ func (m *matcher) Method(method string) *matcher {
 	return m
 }
 
+// Header append handler which append header to response.
 func (m *matcher) Header(key, value string) *matcher {
 	var fn handlerFunc
 	if m.handler == nil {
@@ -230,6 +241,7 @@ func (m *matcher) Header(key, value string) *matcher {
 	return m
 }
 
+// Trailer append handler which append trailer to response.
 func (m *matcher) Trailer(key, value string) *matcher {
 	var fn handlerFunc
 	if m.handler == nil {
@@ -250,10 +262,12 @@ func (m *matcher) Trailer(key, value string) *matcher {
 	return m
 }
 
+// Handler set handler
 func (m *matcher) Handler(fn func(r *Request) *Response) {
 	m.handler = fn
 }
 
+// Response set hander which return response.
 func (m *matcher) Response(message map[string]interface{}) *matcher {
 	var fn handlerFunc
 	if m.handler == nil {
@@ -274,18 +288,21 @@ func (m *matcher) Response(message map[string]interface{}) *matcher {
 	return m
 }
 
+// ResponseString set hander which return response.
 func (m *matcher) ResponseString(message string) *matcher {
 	mes := make(map[string]interface{})
 	_ = json.Unmarshal([]byte(message), &mes)
 	return m.Response(mes)
 }
 
+// Requests returns []*grpcstub.Request received by router.
 func (s *Server) Requests() []*Request {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.requests
 }
 
+// Requests returns []*grpcstub.Request received by matcher.
 func (m *matcher) Requests() []*Request {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
