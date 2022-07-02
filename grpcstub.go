@@ -142,7 +142,7 @@ func (s *Server) Conn() *grpc.ClientConn {
 
 func (s *Server) startServer() {
 	s.t.Helper()
-	s.regsterServer()
+	s.registerServer()
 	reflection.Register(s.server)
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
@@ -292,7 +292,7 @@ func (m *matcher) Requests() []*Request {
 	return m.requests
 }
 
-func (s *Server) regsterServer() {
+func (s *Server) registerServer() {
 	var sds []*grpc.ServiceDesc
 	for _, fd := range s.fds {
 		for _, sd := range fd.GetServices() {
