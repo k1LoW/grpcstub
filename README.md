@@ -27,12 +27,24 @@ func TestClient(t *testing.T) {
 	ts.Method("GetFeature").Response(map[string]interface{}{"name": "hello", "location": map[string]interface{}{"latitude": 10, "longitude": 13}})
 
 	client := routeguide.NewRouteGuideClient(ts.Conn())
-	res, err := client.GetFeature(ctx, &routeguide.Point{
+	if _, err := client.GetFeature(ctx, &routeguide.Point{
 		Latitude:  10,
 		Longitude: 13,
-	})
-	if err != nil {
+	}); err != nil {
 		t.Fatal(err)
+	}
+	{
+		got := len(ts.Requests())
+		if want := 1; got != want {
+			t.Errorf("got %v\nwant %v", got, want)
+		}
+	}
+	req := ts.Requests()[0]
+	{
+		got := req.Message.Get("/longitude").(int32)
+		if want := int32(13); got != want {
+			t.Errorf("got %v\nwant %v", got, want)
+		}
 	}
 }
 ```
