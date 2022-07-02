@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/k1LoW/grpcstub"
+	"github.com/k1LoW/myapp/routeguide"
 )
 
 func TestClient(t *testing.T) {
