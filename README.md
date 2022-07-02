@@ -2,6 +2,8 @@
 
 grpcstub provides gRPC server and client conn ( `*grpc.ClientConn` ) for stubbing, for testing in Go.
 
+There is an HTTP version stubbing tool with the same design concept, [httpstub](https://github.com/k1LoW/httpstub).
+
 ## Usage
 
 ``` go
