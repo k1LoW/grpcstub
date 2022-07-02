@@ -2,7 +2,6 @@ package grpcstub
 
 import (
 	"context"
-	"errors"
 	"io"
 	"net"
 	"strings"
@@ -107,6 +106,10 @@ func NewServer(t *testing.T, importPaths []string, protos ...string) *Server {
 
 func (s *Server) Close() {
 	s.t.Helper()
+	if s.listener == nil {
+		s.t.Error("server is not started yet")
+		return
+	}
 	done := make(chan struct{})
 	go func() {
 		s.server.GracefulStop()
@@ -123,11 +126,18 @@ func (s *Server) Close() {
 	}
 }
 
-func (s *Server) Conn() (*grpc.ClientConn, error) {
+func (s *Server) Conn() *grpc.ClientConn {
+	s.t.Helper()
 	if s.listener == nil {
-		return nil, errors.New("server has not started yet.")
+		s.t.Error("server is not started yet")
+		return nil
 	}
-	return grpc.Dial(s.listener.Addr().String(), grpc.WithInsecure())
+	conn, err := grpc.Dial(s.listener.Addr().String(), grpc.WithInsecure())
+	if err != nil {
+		s.t.Error(err)
+		return nil
+	}
+	return conn
 }
 
 func (s *Server) startServer() {
@@ -136,7 +146,8 @@ func (s *Server) startServer() {
 	reflection.Register(s.server)
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
-		s.t.Fatal(err)
+		s.t.Error(err)
+		return
 	}
 	s.listener = l
 	go func() {

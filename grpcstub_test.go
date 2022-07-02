@@ -23,11 +23,7 @@ func TestUnary(t *testing.T) {
 	})
 	ts.Method("GetFeature").Response(map[string]interface{}{"name": "hello", "location": map[string]interface{}{"latitude": 10, "longitude": 13}})
 
-	conn, err := ts.Conn()
-	if err != nil {
-		t.Fatal(err)
-	}
-	client := routeguide.NewRouteGuideClient(conn)
+	client := routeguide.NewRouteGuideClient(ts.Conn())
 	res, err := client.GetFeature(ctx, &routeguide.Point{
 		Latitude:  10,
 		Longitude: 13,
@@ -64,11 +60,7 @@ func TestClientStreaming(t *testing.T) {
 	})
 	ts.Method("RecordRoute").Response(map[string]interface{}{"point_count": 2, "feature_count": 2, "distance": 10, "elapsed_time": 345})
 
-	conn, err := ts.Conn()
-	if err != nil {
-		t.Fatal(err)
-	}
-	client := routeguide.NewRouteGuideClient(conn)
+	client := routeguide.NewRouteGuideClient(ts.Conn())
 	stream, err := client.RecordRoute(ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -110,11 +102,7 @@ func TestServerStreaming(t *testing.T) {
 	})
 	ts.Method("ListFeatures").Response(map[string]interface{}{"name": "hello"}).Response(map[string]interface{}{"name": "world"})
 
-	conn, err := ts.Conn()
-	if err != nil {
-		t.Fatal(err)
-	}
-	client := routeguide.NewRouteGuideClient(conn)
+	client := routeguide.NewRouteGuideClient(ts.Conn())
 	stream, err := client.ListFeatures(ctx, &routeguide.Rectangle{
 		Lo: &routeguide.Point{
 			Latitude:  int32(10),
@@ -188,12 +176,8 @@ func TestBiStreaming(t *testing.T) {
 		res.Messages = []Message{mes}
 		return res
 	})
-	conn, err := ts.Conn()
-	if err != nil {
-		t.Fatal(err)
-	}
-	client := routeguide.NewRouteGuideClient(conn)
 
+	client := routeguide.NewRouteGuideClient(ts.Conn())
 	stream, err := client.RouteChat(ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -255,11 +239,8 @@ func TestServerMatch(t *testing.T) {
 	ts.Match(func(r *Request) bool {
 		return r.Method == "GetFeature"
 	}).Response(map[string]interface{}{"name": "hello"})
-	conn, err := ts.Conn()
-	if err != nil {
-		t.Fatal(err)
-	}
-	client := routeguide.NewRouteGuideClient(conn)
+
+	client := routeguide.NewRouteGuideClient(ts.Conn())
 	res, err := client.GetFeature(ctx, &routeguide.Point{
 		Latitude:  10,
 		Longitude: 13,
@@ -282,11 +263,8 @@ func TestMatcherMatch(t *testing.T) {
 	ts.Service("routeguide.RouteGuide").Match(func(r *Request) bool {
 		return r.Method == "GetFeature"
 	}).Response(map[string]interface{}{"name": "hello"})
-	conn, err := ts.Conn()
-	if err != nil {
-		t.Fatal(err)
-	}
-	client := routeguide.NewRouteGuideClient(conn)
+
+	client := routeguide.NewRouteGuideClient(ts.Conn())
 	res, err := client.GetFeature(ctx, &routeguide.Point{
 		Latitude:  10,
 		Longitude: 13,
@@ -307,11 +285,8 @@ func TestServerService(t *testing.T) {
 		ts.Close()
 	})
 	ts.Service("routeguide.RouteGuide").Response(map[string]interface{}{"name": "hello"})
-	conn, err := ts.Conn()
-	if err != nil {
-		t.Fatal(err)
-	}
-	client := routeguide.NewRouteGuideClient(conn)
+
+	client := routeguide.NewRouteGuideClient(ts.Conn())
 	res, err := client.GetFeature(ctx, &routeguide.Point{
 		Latitude:  10,
 		Longitude: 13,
@@ -332,11 +307,8 @@ func TestMatcherService(t *testing.T) {
 		ts.Close()
 	})
 	ts.Method("GetFeature").Service("routeguide.RouteGuide").Response(map[string]interface{}{"name": "hello"})
-	conn, err := ts.Conn()
-	if err != nil {
-		t.Fatal(err)
-	}
-	client := routeguide.NewRouteGuideClient(conn)
+
+	client := routeguide.NewRouteGuideClient(ts.Conn())
 	res, err := client.GetFeature(ctx, &routeguide.Point{
 		Latitude:  10,
 		Longitude: 13,
@@ -357,11 +329,8 @@ func TestMatcherMethod(t *testing.T) {
 		ts.Close()
 	})
 	ts.Service("routeguide.RouteGuide").Method("GetFeature").Response(map[string]interface{}{"name": "hello"})
-	conn, err := ts.Conn()
-	if err != nil {
-		t.Fatal(err)
-	}
-	client := routeguide.NewRouteGuideClient(conn)
+
+	client := routeguide.NewRouteGuideClient(ts.Conn())
 	res, err := client.GetFeature(ctx, &routeguide.Point{
 		Latitude:  10,
 		Longitude: 13,
@@ -382,11 +351,8 @@ func TestHeader(t *testing.T) {
 		ts.Close()
 	})
 	ts.Method("GetFeature").Header("session", "XXXxxXXX").Header("size", "213").Response(map[string]interface{}{"name": "hello"})
-	conn, err := ts.Conn()
-	if err != nil {
-		t.Fatal(err)
-	}
-	client := routeguide.NewRouteGuideClient(conn)
+
+	client := routeguide.NewRouteGuideClient(ts.Conn())
 	var header metadata.MD
 	if _, err := client.GetFeature(ctx, &routeguide.Point{}, grpc.Header(&header)); err != nil {
 		t.Fatal(err)
@@ -412,11 +378,8 @@ func TestTrailer(t *testing.T) {
 		ts.Close()
 	})
 	ts.Method("GetFeature").Trailer("session", "XXXxxXXX").Trailer("size", "213").Response(map[string]interface{}{"name": "hello"})
-	conn, err := ts.Conn()
-	if err != nil {
-		t.Fatal(err)
-	}
-	client := routeguide.NewRouteGuideClient(conn)
+
+	client := routeguide.NewRouteGuideClient(ts.Conn())
 	var trailer metadata.MD
 	if _, err := client.GetFeature(ctx, &routeguide.Point{}, grpc.Trailer(&trailer)); err != nil {
 		t.Fatal(err)
@@ -442,11 +405,8 @@ func TestResponseHeader(t *testing.T) {
 		ts.Close()
 	})
 	ts.Method("GetFeature").Response(map[string]interface{}{"name": "hello"})
-	conn, err := ts.Conn()
-	if err != nil {
-		t.Fatal(err)
-	}
-	client := routeguide.NewRouteGuideClient(conn)
+
+	client := routeguide.NewRouteGuideClient(ts.Conn())
 	ctx = metadata.AppendToOutgoingContext(ctx, "authentication", "XXXXxxxxXXXX")
 	if _, err := client.GetFeature(ctx, &routeguide.Point{}); err != nil {
 		t.Fatal(err)
