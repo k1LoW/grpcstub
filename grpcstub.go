@@ -129,6 +129,16 @@ func (s *Server) Close() {
 	}
 }
 
+// Addr returns server listener address
+func (s *Server) Addr() string {
+	s.t.Helper()
+	if s.listener == nil {
+		s.t.Error("server is not started yet")
+		return ""
+	}
+	return s.listener.Addr().String()
+}
+
 // Conn returns *grpc.ClientConn which connects *grpc.Server.
 func (s *Server) Conn() *grpc.ClientConn {
 	s.t.Helper()
