@@ -230,6 +230,17 @@ func TestBiStreaming(t *testing.T) {
 	}
 }
 
+func TestAddr(t *testing.T) {
+	ts := NewServer(t, []string{}, "testdata/route_guide.proto")
+	t.Cleanup(func() {
+		ts.Close()
+	})
+	got := ts.Addr()
+	if !strings.HasPrefix(got, "127.0.0.1:") {
+		t.Errorf("got %v\nwant 127.0.0.1:*", got)
+	}
+}
+
 func TestServerMatch(t *testing.T) {
 	ctx := context.Background()
 	ts := NewServer(t, []string{}, "testdata/route_guide.proto")
