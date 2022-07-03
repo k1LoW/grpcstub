@@ -602,29 +602,39 @@ func TestStatusBiStreaming(t *testing.T) {
 	}
 }
 
-func TestReflection(t *testing.T) {
-	ctx := context.Background()
-	ts := NewServer(t, []string{}, "testdata/route_guide.proto")
-	t.Cleanup(func() {
-		ts.Close()
-	})
-
-	stub := rpb.NewServerReflectionClient(ts.Conn())
-	client := grpcreflect.NewClient(ctx, stub)
-	svcs, err := client.ListServices()
-	if err != nil {
-		t.Fatal(err)
+func TestLoadProto(t *testing.T) {
+	tests := []struct {
+		proto string
+	}{
+		{"testdata/route_guide.proto"},
+		{"testdata/include_google_protobuf.proto"},
 	}
-	for _, svc := range svcs {
-		sd, err := client.ResolveService(svc)
-		if err != nil {
-			t.Fatal(err)
-		}
-		mds := sd.GetMethods()
-		for _, md := range mds {
-			if sd.FindMethodByName(md.GetName()) == nil {
-				t.Errorf("method not found: %s", md.GetFullyQualifiedName())
+	ctx := context.Background()
+	for _, tt := range tests {
+		t.Run(tt.proto, func(t *testing.T) {
+			ts := NewServer(t, []string{}, tt.proto)
+			t.Cleanup(func() {
+				ts.Close()
+			})
+
+			stub := rpb.NewServerReflectionClient(ts.Conn())
+			client := grpcreflect.NewClient(ctx, stub)
+			svcs, err := client.ListServices()
+			if err != nil {
+				t.Fatal(err)
 			}
-		}
+			for _, svc := range svcs {
+				sd, err := client.ResolveService(svc)
+				if err != nil {
+					t.Fatal(err)
+				}
+				mds := sd.GetMethods()
+				for _, md := range mds {
+					if sd.FindMethodByName(md.GetName()) == nil {
+						t.Errorf("method not found: %s", md.GetFullyQualifiedName())
+					}
+				}
+			}
+		})
 	}
 }
