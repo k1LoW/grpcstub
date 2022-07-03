@@ -174,7 +174,7 @@ func TestBiStreaming(t *testing.T) {
 			return res
 		}
 		mes := Message{}
-		mes.Set("/message", strings.Replace(m.(string), "client", "server", 1))
+		_ = mes.Set("/message", strings.Replace(m.(string), "client", "server", 1))
 		res.Messages = []Message{mes}
 		return res
 	})

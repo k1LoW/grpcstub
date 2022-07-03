@@ -23,6 +23,9 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/reflect/protodesc"
+	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/reflect/protoregistry"
 )
 
 type Message map[string]interface{}
@@ -724,6 +727,10 @@ func descriptorFromFiles(importPaths []string, protos ...string) ([]*desc.FileDe
 	if err != nil {
 		return nil, err
 	}
+	if err := registerFileDescriptors(fds); err != nil {
+		return nil, err
+	}
+
 	return fds, nil
 }
 
@@ -778,4 +785,20 @@ func methodMatchFunc(method string) matchFunc {
 		m := splitted[len(splitted)-1]
 		return r.Service == s && r.Method == m
 	}
+}
+
+func registerFileDescriptors(fds []*desc.FileDescriptor) (err error) {
+	var registry *protoregistry.Files
+	registry, err = protodesc.NewFiles(desc.ToFileDescriptorSet(fds...))
+	if err != nil {
+		return err
+	}
+	registry.RangeFiles(func(fd protoreflect.FileDescriptor) bool {
+		if ofd, _ := protoregistry.GlobalFiles.FindFileByPath(fd.Path()); ofd != nil {
+			return true
+		}
+		err = protoregistry.GlobalFiles.RegisterFile(fd)
+		return (err == nil)
+	})
+	return
 }
