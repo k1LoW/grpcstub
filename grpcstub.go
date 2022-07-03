@@ -2,8 +2,11 @@ package grpcstub
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
@@ -156,8 +159,8 @@ func (s *Server) Conn() *grpc.ClientConn {
 
 func (s *Server) startServer() {
 	s.t.Helper()
-	s.registerServer()
 	reflection.Register(s.server)
+	s.registerServer()
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		s.t.Error(err)
@@ -707,16 +710,56 @@ func descriptorFromFiles(importPaths []string, protos ...string) ([]*desc.FileDe
 	if err != nil {
 		return nil, err
 	}
+	importPaths, protos, accessor, err := resolvePaths(importPaths, protos...)
+	if err != nil {
+		return nil, err
+	}
 	p := protoparse.Parser{
 		ImportPaths:           importPaths,
 		InferImportPaths:      len(importPaths) == 0,
 		IncludeSourceCodeInfo: true,
+		Accessor:              accessor,
 	}
 	fds, err := p.ParseFiles(protos...)
 	if err != nil {
 		return nil, err
 	}
 	return fds, nil
+}
+
+func resolvePaths(importPaths []string, protos ...string) ([]string, []string, func(filename string) (io.ReadCloser, error), error) {
+	var prefix string
+	resolvedIPaths := []string{}
+	resolvedProtos := []string{}
+	for _, p := range importPaths {
+		d, b := filepath.Split(p)
+		if d != "" && prefix == "" {
+			prefix = d
+		}
+		resolvedIPaths = append(resolvedIPaths, b)
+	}
+	for _, p := range protos {
+		d, b := filepath.Split(p)
+		if d != "" && prefix == "" {
+			prefix = d
+		}
+		resolvedProtos = append(resolvedProtos, b)
+	}
+	for _, p := range importPaths {
+		d, _ := filepath.Split(p)
+		if d != prefix {
+			return nil, nil, nil, errors.New("could not resolve paths")
+		}
+	}
+	for _, p := range protos {
+		d, _ := filepath.Split(p)
+		if d != prefix {
+			return nil, nil, nil, errors.New("could not resolve paths")
+		}
+	}
+	return resolvedIPaths, resolvedProtos, func(filename string) (io.ReadCloser, error) {
+		return os.Open(filepath.Join(prefix, filename))
+	}, nil
 }
 
 func serviceMatchFunc(service string) matchFunc {

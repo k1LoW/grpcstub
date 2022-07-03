@@ -8,10 +8,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/jhump/protoreflect/grpcreflect"
 	"github.com/k1LoW/grpcstub/testdata/routeguide"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
+	rpb "google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
 	"google.golang.org/grpc/status"
 )
 
@@ -596,6 +598,33 @@ func TestStatusBiStreaming(t *testing.T) {
 		got := s.Message()
 		if want := "aborted"; got != want {
 			t.Errorf("got %v\nwant %v", got, want)
+		}
+	}
+}
+
+func TestReflection(t *testing.T) {
+	ctx := context.Background()
+	ts := NewServer(t, []string{}, "testdata/route_guide.proto")
+	t.Cleanup(func() {
+		ts.Close()
+	})
+
+	stub := rpb.NewServerReflectionClient(ts.Conn())
+	client := grpcreflect.NewClient(ctx, stub)
+	svcs, err := client.ListServices()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, svc := range svcs {
+		sd, err := client.ResolveService(svc)
+		if err != nil {
+			t.Fatal(err)
+		}
+		mds := sd.GetMethods()
+		for _, md := range mds {
+			if sd.FindMethodByName(md.GetName()) == nil {
+				t.Errorf("method not found: %s", md.GetFullyQualifiedName())
+			}
 		}
 	}
 }
