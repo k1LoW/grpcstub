@@ -42,6 +42,15 @@ func (m Message) Set(pointer string, value interface{}) error {
 	return jsonpointer.Set(m, pointer, value)
 }
 
+func (m Message) format(mdd *desc.MessageDescriptor) {
+	for _, f := range mdd.GetFields() {
+		if f.GetName() != f.GetJSONName() {
+			m[f.GetName()] = m[f.GetJSONName()]
+			delete(m, f.GetJSONName())
+		}
+	}
+}
+
 type Request struct {
 	Service string
 	Method  string
@@ -407,6 +416,7 @@ func (s *Server) createUnaryHandler(md *desc.MethodDescriptor) func(srv interfac
 		if err := json.Unmarshal(b, &m); err != nil {
 			return nil, err
 		}
+		m.format(md.GetInputType())
 		r := newRequest(md.GetService().GetFullyQualifiedName(), md.GetName(), m)
 		h, ok := metadata.FromIncomingContext(ctx)
 		if ok {
@@ -494,6 +504,7 @@ func (s *Server) createServerStreamingHandler(md *desc.MethodDescriptor) func(sr
 		if err := json.Unmarshal(b, &m); err != nil {
 			return err
 		}
+		m.format(md.GetInputType())
 		r := newRequest(md.GetService().GetFullyQualifiedName(), md.GetName(), m)
 		h, ok := metadata.FromIncomingContext(stream.Context())
 		if ok {
@@ -566,6 +577,7 @@ func (s *Server) createClientStreamingHandler(md *desc.MethodDescriptor) func(sr
 				if err := json.Unmarshal(b, &m); err != nil {
 					return err
 				}
+				m.format(md.GetInputType())
 				r := newRequest(md.GetService().GetFullyQualifiedName(), md.GetName(), m)
 				h, ok := metadata.FromIncomingContext(stream.Context())
 				if ok {
@@ -650,6 +662,7 @@ func (s *Server) createBiStreamingHandler(md *desc.MethodDescriptor) func(srv in
 			if err := json.Unmarshal(b, &m); err != nil {
 				return err
 			}
+			m.format(md.GetInputType())
 			r := newRequest(md.GetService().GetFullyQualifiedName(), md.GetName(), m)
 			h, ok := metadata.FromIncomingContext(stream.Context())
 			if ok {
