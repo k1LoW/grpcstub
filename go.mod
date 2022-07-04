@@ -3,7 +3,6 @@ module github.com/k1LoW/grpcstub
 go 1.18
 
 require (
-	github.com/goccy/go-json v0.9.8
 	github.com/golang/protobuf v1.5.2
 	github.com/jhump/protoreflect v1.12.0
 	github.com/mattn/go-jsonpointer v0.0.1
