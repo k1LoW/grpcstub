@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.2.3](https://github.com/k1LoW/grpcstub/compare/v0.2.2...v0.2.3) (2022-07-04)
+
+* Fix keys convert: use OrigName option [#8](https://github.com/k1LoW/grpcstub/pull/8) ([k1LoW](https://github.com/k1LoW))
+* The keys of the parameters of the recorded request message should be the same as in the proto file. [#7](https://github.com/k1LoW/grpcstub/pull/7) ([k1LoW](https://github.com/k1LoW))
+* Use encoding/json [#6](https://github.com/k1LoW/grpcstub/pull/6) ([k1LoW](https://github.com/k1LoW))
+
 ## [v0.2.2](https://github.com/k1LoW/grpcstub/compare/v0.2.1...v0.2.2) (2022-07-03)
 
 * Fix register desc [#5](https://github.com/k1LoW/grpcstub/pull/5) ([k1LoW](https://github.com/k1LoW))
