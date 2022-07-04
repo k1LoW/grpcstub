@@ -1,6 +1,7 @@
 package grpcstub
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -8,12 +9,12 @@ import (
 	"net"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto" //nolint
 	"github.com/jhump/protoreflect/desc"
 	"github.com/jhump/protoreflect/desc/protoparse"
@@ -27,7 +28,6 @@ import (
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
-	dpb "google.golang.org/protobuf/types/descriptorpb"
 )
 
 type Message map[string]interface{}
@@ -42,55 +42,6 @@ func (m Message) Has(pointer string) bool {
 
 func (m Message) Set(pointer string, value interface{}) error {
 	return jsonpointer.Set(m, pointer, value)
-}
-
-func (m Message) convertTypes(mdd *desc.MessageDescriptor) {
-	for _, f := range mdd.GetFields() {
-		switch f.GetType() {
-		case dpb.FieldDescriptorProto_TYPE_DOUBLE, dpb.FieldDescriptorProto_TYPE_FLOAT:
-			v, err := strconv.ParseFloat(m[f.GetJSONName()].(string), 64)
-			if err == nil {
-				m[f.GetJSONName()] = v
-			}
-		case dpb.FieldDescriptorProto_TYPE_INT32, dpb.FieldDescriptorProto_TYPE_FIXED32, dpb.FieldDescriptorProto_TYPE_SFIXED32, dpb.FieldDescriptorProto_TYPE_SINT32:
-			v, err := strconv.ParseInt(m[f.GetJSONName()].(string), 10, 32)
-			if err == nil {
-				m[f.GetJSONName()] = v
-			}
-		case dpb.FieldDescriptorProto_TYPE_INT64, dpb.FieldDescriptorProto_TYPE_FIXED64, dpb.FieldDescriptorProto_TYPE_SFIXED64, dpb.FieldDescriptorProto_TYPE_SINT64:
-			v, err := strconv.ParseInt(m[f.GetJSONName()].(string), 10, 64)
-			if err == nil {
-				m[f.GetJSONName()] = v
-			}
-		case dpb.FieldDescriptorProto_TYPE_UINT32:
-			v, err := strconv.ParseUint(m[f.GetJSONName()].(string), 10, 32)
-			if err == nil {
-				m[f.GetJSONName()] = v
-			}
-		case dpb.FieldDescriptorProto_TYPE_UINT64:
-			v, err := strconv.ParseUint(m[f.GetJSONName()].(string), 10, 64)
-			if err == nil {
-				m[f.GetJSONName()] = v
-			}
-		case dpb.FieldDescriptorProto_TYPE_BOOL:
-			v, err := strconv.ParseBool(m[f.GetJSONName()].(string))
-			if err == nil {
-				m[f.GetJSONName()] = v
-			}
-		default:
-			// dpb.FieldDescriptorProto_TYPE_STRING
-			// dpb.FieldDescriptorProto_TYPE_GROUP
-			// dpb.FieldDescriptorProto_TYPE_MESSAGE
-			// dpb.FieldDescriptorProto_TYPE_BYTES
-			// dpb.FieldDescriptorProto_TYPE_ENUM
-		}
-	}
-	for _, f := range mdd.GetFields() {
-		if f.GetName() != f.GetJSONName() {
-			m[f.GetName()] = m[f.GetJSONName()]
-			delete(m, f.GetJSONName())
-		}
-	}
 }
 
 type Request struct {
@@ -450,15 +401,17 @@ func (s *Server) createUnaryHandler(md *desc.MethodDescriptor) func(srv interfac
 		if err := dec(in); err != nil {
 			return nil, err
 		}
-		b, err := json.Marshal(in)
-		if err != nil {
+		b := new(bytes.Buffer)
+		marshaler := jsonpb.Marshaler{
+			OrigName: true,
+		}
+		if err := marshaler.Marshal(b, in); err != nil {
 			return nil, err
 		}
 		m := Message{}
-		if err := json.Unmarshal(b, &m); err != nil {
+		if err := json.Unmarshal(b.Bytes(), &m); err != nil {
 			return nil, err
 		}
-		m.convertTypes(md.GetInputType())
 		r := newRequest(md.GetService().GetFullyQualifiedName(), md.GetName(), m)
 		h, ok := metadata.FromIncomingContext(ctx)
 		if ok {
@@ -538,15 +491,17 @@ func (s *Server) createServerStreamingHandler(md *desc.MethodDescriptor) func(sr
 		if err := stream.RecvMsg(in); err != nil {
 			return err
 		}
-		b, err := json.Marshal(in)
-		if err != nil {
+		b := new(bytes.Buffer)
+		marshaler := jsonpb.Marshaler{
+			OrigName: true,
+		}
+		if err := marshaler.Marshal(b, in); err != nil {
 			return err
 		}
 		m := Message{}
-		if err := json.Unmarshal(b, &m); err != nil {
+		if err := json.Unmarshal(b.Bytes(), &m); err != nil {
 			return err
 		}
-		m.convertTypes(md.GetInputType())
 		r := newRequest(md.GetService().GetFullyQualifiedName(), md.GetName(), m)
 		h, ok := metadata.FromIncomingContext(stream.Context())
 		if ok {
@@ -611,15 +566,17 @@ func (s *Server) createClientStreamingHandler(md *desc.MethodDescriptor) func(sr
 			in := msgFactory.NewMessage(md.GetInputType())
 			err := stream.RecvMsg(in)
 			if err == nil {
-				b, err := json.Marshal(in)
-				if err != nil {
+				b := new(bytes.Buffer)
+				marshaler := jsonpb.Marshaler{
+					OrigName: true,
+				}
+				if err := marshaler.Marshal(b, in); err != nil {
 					return err
 				}
 				m := Message{}
-				if err := json.Unmarshal(b, &m); err != nil {
+				if err := json.Unmarshal(b.Bytes(), &m); err != nil {
 					return err
 				}
-				m.convertTypes(md.GetInputType())
 				r := newRequest(md.GetService().GetFullyQualifiedName(), md.GetName(), m)
 				h, ok := metadata.FromIncomingContext(stream.Context())
 				if ok {
@@ -696,15 +653,17 @@ func (s *Server) createBiStreamingHandler(md *desc.MethodDescriptor) func(srv in
 			if err != nil {
 				return err
 			}
-			b, err := json.Marshal(in)
-			if err != nil {
+			b := new(bytes.Buffer)
+			marshaler := jsonpb.Marshaler{
+				OrigName: true,
+			}
+			if err := marshaler.Marshal(b, in); err != nil {
 				return err
 			}
 			m := Message{}
-			if err := json.Unmarshal(b, &m); err != nil {
+			if err := json.Unmarshal(b.Bytes(), &m); err != nil {
 				return err
 			}
-			m.convertTypes(md.GetInputType())
 			r := newRequest(md.GetService().GetFullyQualifiedName(), md.GetName(), m)
 			h, ok := metadata.FromIncomingContext(stream.Context())
 			if ok {
