@@ -1,6 +1,7 @@
 package grpcstub
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -13,7 +14,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/protobuf/proto" //nolint
+	"github.com/golang/protobuf/jsonpb" //nolint
+	"github.com/golang/protobuf/proto"  //nolint
 	"github.com/jhump/protoreflect/desc"
 	"github.com/jhump/protoreflect/desc/protoparse"
 	"github.com/jhump/protoreflect/dynamic"
@@ -40,15 +42,6 @@ func (m Message) Has(pointer string) bool {
 
 func (m Message) Set(pointer string, value interface{}) error {
 	return jsonpointer.Set(m, pointer, value)
-}
-
-func (m Message) format(mdd *desc.MessageDescriptor) {
-	for _, f := range mdd.GetFields() {
-		if f.GetName() != f.GetJSONName() {
-			m[f.GetName()] = m[f.GetJSONName()]
-			delete(m, f.GetJSONName())
-		}
-	}
 }
 
 type Request struct {
@@ -408,15 +401,17 @@ func (s *Server) createUnaryHandler(md *desc.MethodDescriptor) func(srv interfac
 		if err := dec(in); err != nil {
 			return nil, err
 		}
-		b, err := json.Marshal(in)
-		if err != nil {
+		b := new(bytes.Buffer)
+		marshaler := jsonpb.Marshaler{
+			OrigName: true,
+		}
+		if err := marshaler.Marshal(b, in); err != nil {
 			return nil, err
 		}
 		m := Message{}
-		if err := json.Unmarshal(b, &m); err != nil {
+		if err := json.Unmarshal(b.Bytes(), &m); err != nil {
 			return nil, err
 		}
-		m.format(md.GetInputType())
 		r := newRequest(md.GetService().GetFullyQualifiedName(), md.GetName(), m)
 		h, ok := metadata.FromIncomingContext(ctx)
 		if ok {
@@ -496,15 +491,17 @@ func (s *Server) createServerStreamingHandler(md *desc.MethodDescriptor) func(sr
 		if err := stream.RecvMsg(in); err != nil {
 			return err
 		}
-		b, err := json.Marshal(in)
-		if err != nil {
+		b := new(bytes.Buffer)
+		marshaler := jsonpb.Marshaler{
+			OrigName: true,
+		}
+		if err := marshaler.Marshal(b, in); err != nil {
 			return err
 		}
 		m := Message{}
-		if err := json.Unmarshal(b, &m); err != nil {
+		if err := json.Unmarshal(b.Bytes(), &m); err != nil {
 			return err
 		}
-		m.format(md.GetInputType())
 		r := newRequest(md.GetService().GetFullyQualifiedName(), md.GetName(), m)
 		h, ok := metadata.FromIncomingContext(stream.Context())
 		if ok {
@@ -569,15 +566,17 @@ func (s *Server) createClientStreamingHandler(md *desc.MethodDescriptor) func(sr
 			in := msgFactory.NewMessage(md.GetInputType())
 			err := stream.RecvMsg(in)
 			if err == nil {
-				b, err := json.Marshal(in)
-				if err != nil {
+				b := new(bytes.Buffer)
+				marshaler := jsonpb.Marshaler{
+					OrigName: true,
+				}
+				if err := marshaler.Marshal(b, in); err != nil {
 					return err
 				}
 				m := Message{}
-				if err := json.Unmarshal(b, &m); err != nil {
+				if err := json.Unmarshal(b.Bytes(), &m); err != nil {
 					return err
 				}
-				m.format(md.GetInputType())
 				r := newRequest(md.GetService().GetFullyQualifiedName(), md.GetName(), m)
 				h, ok := metadata.FromIncomingContext(stream.Context())
 				if ok {
@@ -654,15 +653,17 @@ func (s *Server) createBiStreamingHandler(md *desc.MethodDescriptor) func(srv in
 			if err != nil {
 				return err
 			}
-			b, err := json.Marshal(in)
-			if err != nil {
+			b := new(bytes.Buffer)
+			marshaler := jsonpb.Marshaler{
+				OrigName: true,
+			}
+			if err := marshaler.Marshal(b, in); err != nil {
 				return err
 			}
 			m := Message{}
-			if err := json.Unmarshal(b, &m); err != nil {
+			if err := json.Unmarshal(b.Bytes(), &m); err != nil {
 				return err
 			}
-			m.format(md.GetInputType())
 			r := newRequest(md.GetService().GetFullyQualifiedName(), md.GetName(), m)
 			h, ok := metadata.FromIncomingContext(stream.Context())
 			if ok {
