@@ -627,14 +627,11 @@ func (s *Server) createClientStreamingHandler(md *desc.MethodDescriptor) func(sr
 									stream.SetTrailer((metadata.Pairs(k, vv)))
 								}
 							}
+							return stream.SendMsg(mes)
 						}
-						return stream.SendMsg(mes)
 					}
-					return status.Error(codes.NotFound, codes.NotFound.String())
 				}
-			}
-			if err != nil {
-				return err
+				return status.Error(codes.NotFound, codes.NotFound.String())
 			}
 		}
 	}
