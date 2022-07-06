@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.3.0](https://github.com/k1LoW/grpcstub/compare/v0.2.4...v0.3.0) (2022-07-06)
+
+* Only the first response sends Header in bidirectional streaming [#10](https://github.com/k1LoW/grpcstub/pull/10) ([k1LoW](https://github.com/k1LoW))
+
 ## [v0.2.4](https://github.com/k1LoW/grpcstub/compare/v0.2.3...v0.2.4) (2022-07-05)
 
 * Fix handle client streaming [#9](https://github.com/k1LoW/grpcstub/pull/9) ([k1LoW](https://github.com/k1LoW))
