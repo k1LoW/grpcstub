@@ -639,6 +639,7 @@ func (s *Server) createClientStreamingHandler(md *desc.MethodDescriptor) func(sr
 
 func (s *Server) createBiStreamingHandler(md *desc.MethodDescriptor) func(srv interface{}, stream grpc.ServerStream) error {
 	return func(srv interface{}, stream grpc.ServerStream) error {
+		headerSent := false
 	L:
 		for {
 			msgFactory := dynamic.NewMessageFactoryWithDefaults()
@@ -681,10 +682,13 @@ func (s *Server) createBiStreamingHandler(md *desc.MethodDescriptor) func(srv in
 					m.requests = append(m.requests, r)
 					m.mu.Unlock()
 					res := m.handler(r)
-					for k, v := range res.Headers {
-						for _, vv := range v {
-							if err := stream.SendHeader(metadata.Pairs(k, vv)); err != nil {
-								return err
+					if !headerSent {
+						for k, v := range res.Headers {
+							for _, vv := range v {
+								if err := stream.SendHeader(metadata.Pairs(k, vv)); err != nil {
+									return err
+								}
+								headerSent = true
 							}
 						}
 					}

@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/jhump/protoreflect/grpcreflect"
 	"github.com/k1LoW/grpcstub/testdata/routeguide"
 	"google.golang.org/grpc"
@@ -165,19 +166,22 @@ func TestBiStreaming(t *testing.T) {
 			return false
 		}
 		return strings.Contains(m.(string), "hello from client[0]")
-	}).Response(map[string]interface{}{"location": nil, "message": "hello from server[0]"})
-	ts.Method("RouteChat").Handler(func(r *Request) *Response {
-		res := NewResponse()
-		m, err := r.Message.Get("/message")
-		if err != nil {
-			res.Status = status.New(codes.Unknown, codes.Unknown.String())
+	}).Header("hello", "header").
+		Response(map[string]interface{}{"location": nil, "message": "hello from server[0]"})
+	ts.Method("RouteChat").
+		Header("hello", "header").
+		Handler(func(r *Request) *Response {
+			res := NewResponse()
+			m, err := r.Message.Get("/message")
+			if err != nil {
+				res.Status = status.New(codes.Unknown, codes.Unknown.String())
+				return res
+			}
+			mes := Message{}
+			_ = mes.Set("/message", strings.Replace(m.(string), "client", "server", 1))
+			res.Messages = []Message{mes}
 			return res
-		}
-		mes := Message{}
-		_ = mes.Set("/message", strings.Replace(m.(string), "client", "server", 1))
-		res.Messages = []Message{mes}
-		return res
-	})
+		})
 
 	client := routeguide.NewRouteGuideClient(ts.Conn())
 	stream, err := client.RouteChat(ctx)
@@ -565,7 +569,7 @@ func TestStatusBiStreaming(t *testing.T) {
 	t.Cleanup(func() {
 		ts.Close()
 	})
-	ts.Method("RouteChat").Status(status.New(codes.Aborted, "aborted"))
+	ts.Method("RouteChat").Header("hello", "header").Trailer("hello", "trailer").Status(status.New(codes.Aborted, "aborted"))
 
 	client := routeguide.NewRouteGuideClient(ts.Conn())
 	stream, err := client.RouteChat(ctx)
@@ -598,6 +602,24 @@ func TestStatusBiStreaming(t *testing.T) {
 		got := s.Message()
 		if want := "aborted"; got != want {
 			t.Errorf("got %v\nwant %v", got, want)
+		}
+	}
+	h, err := stream.Header()
+	if err != nil {
+		t.Error(err)
+	}
+	{
+		got := h.Get("hello")
+		want := []string{"header"}
+		if diff := cmp.Diff(got, want, nil); diff != "" {
+			t.Errorf("%s", diff)
+		}
+	}
+	{
+		got := stream.Trailer().Get("hello")
+		want := []string{"trailer"}
+		if diff := cmp.Diff(got, want, nil); diff != "" {
+			t.Errorf("%s", diff)
 		}
 	}
 }
