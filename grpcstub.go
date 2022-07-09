@@ -124,9 +124,8 @@ func (s *Server) Close() {
 		return
 	}
 	if s.cc != nil {
-		if err := s.cc.Close(); err != nil {
-			s.t.Error(err)
-		}
+		_ = s.cc.Close()
+		s.cc = nil
 	}
 	done := make(chan struct{})
 	go func() {
