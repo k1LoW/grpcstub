@@ -83,6 +83,7 @@ type Server struct {
 	fds      []*desc.FileDescriptor
 	listener net.Listener
 	server   *grpc.Server
+	cc       *grpc.ClientConn
 	requests []*Request
 	t        *testing.T
 	mu       sync.RWMutex
@@ -121,6 +122,10 @@ func (s *Server) Close() {
 	if s.listener == nil {
 		s.t.Error("server is not started yet")
 		return
+	}
+	if s.cc != nil {
+		_ = s.cc.Close()
+		s.cc = nil
 	}
 	done := make(chan struct{})
 	go func() {
@@ -164,6 +169,7 @@ func (s *Server) Conn() *grpc.ClientConn {
 		s.t.Error(err)
 		return nil
 	}
+	s.cc = conn
 	return conn
 }
 
