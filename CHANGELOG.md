@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.4.0](https://github.com/k1LoW/grpcstub/compare/v0.3.0...v0.4.0) (2022-07-10)
+
+* gRPC conn close before server close [#12](https://github.com/k1LoW/grpcstub/pull/12) ([k1LoW](https://github.com/k1LoW))
+* Fix grpc.Dial option [#11](https://github.com/k1LoW/grpcstub/pull/11) ([k1LoW](https://github.com/k1LoW))
+
 ## [v0.3.0](https://github.com/k1LoW/grpcstub/compare/v0.2.4...v0.3.0) (2022-07-06)
 
 * Only the first response sends Header in bidirectional streaming [#10](https://github.com/k1LoW/grpcstub/pull/10) ([k1LoW](https://github.com/k1LoW))
