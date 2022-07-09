@@ -22,6 +22,7 @@ import (
 	"github.com/mattn/go-jsonpointer"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
@@ -154,7 +155,11 @@ func (s *Server) Conn() *grpc.ClientConn {
 		s.t.Error("server is not started yet")
 		return nil
 	}
-	conn, err := grpc.Dial(s.listener.Addr().String(), grpc.WithInsecure())
+	conn, err := grpc.Dial(
+		s.listener.Addr().String(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithBlock(),
+	)
 	if err != nil {
 		s.t.Error(err)
 		return nil
