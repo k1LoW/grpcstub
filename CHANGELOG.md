@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.5.0](https://github.com/k1LoW/grpcstub/compare/v0.4.0...v0.5.0) (2022-07-15)
+
+* Support TLS [#14](https://github.com/k1LoW/grpcstub/pull/14) ([k1LoW](https://github.com/k1LoW))
+* Add Server.ClientConn as alias [#13](https://github.com/k1LoW/grpcstub/pull/13) ([k1LoW](https://github.com/k1LoW))
+
 ## [v0.4.0](https://github.com/k1LoW/grpcstub/compare/v0.3.0...v0.4.0) (2022-07-10)
 
 * gRPC conn close before server close [#12](https://github.com/k1LoW/grpcstub/pull/12) ([k1LoW](https://github.com/k1LoW))
