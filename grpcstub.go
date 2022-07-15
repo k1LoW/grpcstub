@@ -173,6 +173,11 @@ func (s *Server) Conn() *grpc.ClientConn {
 	return conn
 }
 
+// ClientConn is alias of Conn
+func (s *Server) ClientConn() *grpc.ClientConn {
+	return s.Conn()
+}
+
 func (s *Server) startServer() {
 	s.t.Helper()
 	reflection.Register(s.server)
