@@ -3,6 +3,8 @@ package grpcstub
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"errors"
 	"io"
@@ -22,6 +24,7 @@ import (
 	"github.com/mattn/go-jsonpointer"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
@@ -83,6 +86,8 @@ type Server struct {
 	fds      []*desc.FileDescriptor
 	listener net.Listener
 	server   *grpc.Server
+	tlsc     *tls.Config
+	cacert   []byte
 	cc       *grpc.ClientConn
 	requests []*Request
 	t        *testing.T
@@ -110,6 +115,33 @@ func NewServer(t *testing.T, importPaths []string, protos ...string) *Server {
 	s := &Server{
 		fds:    fds,
 		server: grpc.NewServer(),
+		t:      t,
+	}
+	s.startServer()
+	return s
+}
+
+// NewTLSServer returns a new server with registered secure *grpc.Server
+func NewTLSServer(t *testing.T, cacert, cert, key []byte, importPaths []string, protos ...string) *Server {
+	t.Helper()
+	fds, err := descriptorFromFiles(importPaths, protos...)
+	if err != nil {
+		t.Error(err)
+		return nil
+	}
+	certificate, err := tls.X509KeyPair(cert, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tlsc := &tls.Config{
+		Certificates: []tls.Certificate{certificate},
+	}
+	creds := credentials.NewTLS(tlsc)
+	s := &Server{
+		fds:    fds,
+		tlsc:   tlsc,
+		cacert: cacert,
+		server: grpc.NewServer(grpc.Creds(creds)),
 		t:      t,
 	}
 	s.startServer()
@@ -160,10 +192,24 @@ func (s *Server) Conn() *grpc.ClientConn {
 		s.t.Error("server is not started yet")
 		return nil
 	}
+	var creds credentials.TransportCredentials
+	if s.tlsc == nil {
+		creds = insecure.NewCredentials()
+	} else {
+		if s.cacert == nil {
+			s.tlsc.InsecureSkipVerify = true
+		} else {
+			pool := x509.NewCertPool()
+			if ok := pool.AppendCertsFromPEM(s.cacert); !ok {
+				s.t.Fatal(errors.New("failed to append ca certs"))
+			}
+			s.tlsc.RootCAs = pool
+		}
+		creds = credentials.NewTLS(s.tlsc)
+	}
 	conn, err := grpc.Dial(
 		s.listener.Addr().String(),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithBlock(),
+		grpc.WithTransportCredentials(creds),
 	)
 	if err != nil {
 		s.t.Error(err)
