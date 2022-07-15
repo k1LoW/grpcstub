@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 	"testing"
 
@@ -658,5 +659,53 @@ func TestLoadProto(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestTLSServer(t *testing.T) {
+	ctx := context.Background()
+	cacert, err := os.ReadFile("testdata/cacert.pem")
+	if err != nil {
+		t.Fatal(err)
+	}
+	cert, err := os.ReadFile("testdata/cert.pem")
+	if err != nil {
+		t.Fatal(err)
+	}
+	key, err := os.ReadFile("testdata/key.pem")
+	if err != nil {
+		t.Fatal(err)
+	}
+	ts := NewTLSServer(t, cacert, cert, key, []string{}, "testdata/route_guide.proto")
+	t.Cleanup(func() {
+		ts.Close()
+	})
+	ts.Method("GetFeature").Response(map[string]interface{}{"name": "hello", "location": map[string]interface{}{"latitude": 10, "longitude": 13}})
+	client := routeguide.NewRouteGuideClient(ts.Conn())
+	res, err := client.GetFeature(ctx, &routeguide.Point{
+		Latitude:  10,
+		Longitude: 13,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	{
+		got := res.Name
+		if want := "hello"; got != want {
+			t.Errorf("got %v\nwant %v", got, want)
+		}
+	}
+	{
+		got := res.Location.Latitude
+		if want := int32(10); got != want {
+			t.Errorf("got %v\nwant %v", got, want)
+		}
+	}
+
+	{
+		got := len(ts.Requests())
+		if want := 1; got != want {
+			t.Errorf("got %v\nwant %v", got, want)
+		}
 	}
 }
