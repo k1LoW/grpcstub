@@ -1,5 +1,8 @@
 # Changelog
 
+## [v0.5.1](https://github.com/k1LoW/grpcstub/compare/v0.5.0...v0.5.1) - 2022-10-09
+- Use tagpr by @k1LoW in https://github.com/k1LoW/grpcstub/pull/15
+
 ## [v0.5.0](https://github.com/k1LoW/grpcstub/compare/v0.4.0...v0.5.0) (2022-07-15)
 
 * Support TLS [#14](https://github.com/k1LoW/grpcstub/pull/14) ([k1LoW](https://github.com/k1LoW))

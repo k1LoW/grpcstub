@@ -33,6 +33,11 @@ prerelease:
 	git commit -m'Bump up version number'
 	git tag ${VER}
 
+prerelease_for_tagpr:
+	go mod tidy
+	gocredits -w .
+	git add CHANGELOG.md CREDITS go.mod go.sum
+
 release:
 	git push origin main --tag
 
