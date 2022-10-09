@@ -33,7 +33,7 @@ prerelease:
 	git commit -m'Bump up version number'
 	git tag ${VER}
 
-prerelease_for_tagpr:
+prerelease_for_tagpr: depsdev
 	go mod tidy
 	gocredits -w .
 	git add CHANGELOG.md CREDITS go.mod go.sum
