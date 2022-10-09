@@ -1,5 +1,8 @@
 # Changelog
 
+## [v0.6.1](https://github.com/k1LoW/grpcstub/compare/v0.6.0...v0.6.1) - 2022-10-09
+- Always keep file paths unique by @k1LoW in https://github.com/k1LoW/grpcstub/pull/20
+
 ## [v0.6.0](https://github.com/k1LoW/grpcstub/compare/v0.5.1...v0.6.0) - 2022-10-09
 - [BREAKING] Add Option and Change function signature of NewServer() by @k1LoW in https://github.com/k1LoW/grpcstub/pull/17
 
