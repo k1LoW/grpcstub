@@ -20,7 +20,7 @@ import (
 
 func TestClient(t *testing.T) {
 	ctx := context.Background()
-	ts := grpcstub.NewServer(t, []string{}, "path/to/route_guide.proto")
+	ts := grpcstub.NewServer(t, "path/to/route_guide.proto")
 	t.Cleanup(func() {
 		ts.Close()
 	})
