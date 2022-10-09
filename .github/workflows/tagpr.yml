@@ -23,5 +23,3 @@ jobs:
       - id: run-tagpr
         name: Run tagpr
         uses: Songmu/tagpr@v1
-        with:
-          version: v1.0.4
