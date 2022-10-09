@@ -105,47 +105,47 @@ type matchFunc func(r *Request) bool
 type handlerFunc func(r *Request) *Response
 
 // NewServer returns a new server with registered *grpc.Server
-func NewServer(t *testing.T, importPaths []string, protos ...string) *Server {
+func NewServer(t *testing.T, proto string, opts ...Option) *Server {
 	t.Helper()
-	fds, err := descriptorFromFiles(importPaths, protos...)
+	c := &config{}
+	opts = append(opts, Proto(proto))
+	for _, opt := range opts {
+		if err := opt(c); err != nil {
+			t.Fatal(err)
+		}
+	}
+	fds, err := descriptorFromFiles(c.importPaths, c.protos...)
 	if err != nil {
 		t.Error(err)
 		return nil
 	}
 	s := &Server{
-		fds:    fds,
-		server: grpc.NewServer(),
-		t:      t,
+		fds: fds,
+		t:   t,
+	}
+	if c.useTLS {
+		certificate, err := tls.X509KeyPair(c.cert, c.key)
+		if err != nil {
+			t.Fatal(err)
+		}
+		tlsc := &tls.Config{
+			Certificates: []tls.Certificate{certificate},
+		}
+		creds := credentials.NewTLS(tlsc)
+		s.tlsc = tlsc
+		s.cacert = c.cacert
+		s.server = grpc.NewServer(grpc.Creds(creds))
+	} else {
+		s.server = grpc.NewServer()
 	}
 	s.startServer()
 	return s
 }
 
 // NewTLSServer returns a new server with registered secure *grpc.Server
-func NewTLSServer(t *testing.T, cacert, cert, key []byte, importPaths []string, protos ...string) *Server {
-	t.Helper()
-	fds, err := descriptorFromFiles(importPaths, protos...)
-	if err != nil {
-		t.Error(err)
-		return nil
-	}
-	certificate, err := tls.X509KeyPair(cert, key)
-	if err != nil {
-		t.Fatal(err)
-	}
-	tlsc := &tls.Config{
-		Certificates: []tls.Certificate{certificate},
-	}
-	creds := credentials.NewTLS(tlsc)
-	s := &Server{
-		fds:    fds,
-		tlsc:   tlsc,
-		cacert: cacert,
-		server: grpc.NewServer(grpc.Creds(creds)),
-		t:      t,
-	}
-	s.startServer()
-	return s
+func NewTLSServer(t *testing.T, proto string, cacert, cert, key []byte, opts ...Option) *Server {
+	opts = append(opts, UseTLS(cacert, cert, key))
+	return NewServer(t, proto, opts...)
 }
 
 // Close shuts down *grpc.Server

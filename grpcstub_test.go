@@ -21,7 +21,7 @@ import (
 
 func TestUnary(t *testing.T) {
 	ctx := context.Background()
-	ts := NewServer(t, []string{}, "testdata/route_guide.proto")
+	ts := NewServer(t, "testdata/route_guide.proto")
 	t.Cleanup(func() {
 		ts.Close()
 	})
@@ -58,7 +58,7 @@ func TestUnary(t *testing.T) {
 
 func TestServerStreaming(t *testing.T) {
 	ctx := context.Background()
-	ts := NewServer(t, []string{}, "testdata/route_guide.proto")
+	ts := NewServer(t, "testdata/route_guide.proto")
 	t.Cleanup(func() {
 		ts.Close()
 	})
@@ -115,7 +115,7 @@ func TestServerStreaming(t *testing.T) {
 
 func TestClientStreaming(t *testing.T) {
 	ctx := context.Background()
-	ts := NewServer(t, []string{}, "testdata/route_guide.proto")
+	ts := NewServer(t, "testdata/route_guide.proto")
 	t.Cleanup(func() {
 		ts.Close()
 	})
@@ -157,7 +157,7 @@ func TestClientStreaming(t *testing.T) {
 
 func TestBiStreaming(t *testing.T) {
 	ctx := context.Background()
-	ts := NewServer(t, []string{}, "testdata/route_guide.proto")
+	ts := NewServer(t, "testdata/route_guide.proto")
 	t.Cleanup(func() {
 		ts.Close()
 	})
@@ -238,7 +238,7 @@ func TestBiStreaming(t *testing.T) {
 }
 
 func TestAddr(t *testing.T) {
-	ts := NewServer(t, []string{}, "testdata/route_guide.proto")
+	ts := NewServer(t, "testdata/route_guide.proto")
 	t.Cleanup(func() {
 		ts.Close()
 	})
@@ -250,7 +250,7 @@ func TestAddr(t *testing.T) {
 
 func TestServerMatch(t *testing.T) {
 	ctx := context.Background()
-	ts := NewServer(t, []string{}, "testdata/route_guide.proto")
+	ts := NewServer(t, "testdata/route_guide.proto")
 	t.Cleanup(func() {
 		ts.Close()
 	})
@@ -274,7 +274,7 @@ func TestServerMatch(t *testing.T) {
 
 func TestMatcherMatch(t *testing.T) {
 	ctx := context.Background()
-	ts := NewServer(t, []string{}, "testdata/route_guide.proto")
+	ts := NewServer(t, "testdata/route_guide.proto")
 	t.Cleanup(func() {
 		ts.Close()
 	})
@@ -298,7 +298,7 @@ func TestMatcherMatch(t *testing.T) {
 
 func TestServerService(t *testing.T) {
 	ctx := context.Background()
-	ts := NewServer(t, []string{}, "testdata/route_guide.proto")
+	ts := NewServer(t, "testdata/route_guide.proto")
 	t.Cleanup(func() {
 		ts.Close()
 	})
@@ -320,7 +320,7 @@ func TestServerService(t *testing.T) {
 
 func TestMatcherService(t *testing.T) {
 	ctx := context.Background()
-	ts := NewServer(t, []string{}, "testdata/route_guide.proto")
+	ts := NewServer(t, "testdata/route_guide.proto")
 	t.Cleanup(func() {
 		ts.Close()
 	})
@@ -342,7 +342,7 @@ func TestMatcherService(t *testing.T) {
 
 func TestMatcherMethod(t *testing.T) {
 	ctx := context.Background()
-	ts := NewServer(t, []string{}, "testdata/route_guide.proto")
+	ts := NewServer(t, "testdata/route_guide.proto")
 	t.Cleanup(func() {
 		ts.Close()
 	})
@@ -364,7 +364,7 @@ func TestMatcherMethod(t *testing.T) {
 
 func TestHeader(t *testing.T) {
 	ctx := context.Background()
-	ts := NewServer(t, []string{}, "testdata/route_guide.proto")
+	ts := NewServer(t, "testdata/route_guide.proto")
 	t.Cleanup(func() {
 		ts.Close()
 	})
@@ -391,7 +391,7 @@ func TestHeader(t *testing.T) {
 
 func TestTrailer(t *testing.T) {
 	ctx := context.Background()
-	ts := NewServer(t, []string{}, "testdata/route_guide.proto")
+	ts := NewServer(t, "testdata/route_guide.proto")
 	t.Cleanup(func() {
 		ts.Close()
 	})
@@ -418,7 +418,7 @@ func TestTrailer(t *testing.T) {
 
 func TestResponseHeader(t *testing.T) {
 	ctx := context.Background()
-	ts := NewServer(t, []string{}, "testdata/route_guide.proto")
+	ts := NewServer(t, "testdata/route_guide.proto")
 	t.Cleanup(func() {
 		ts.Close()
 	})
@@ -438,7 +438,7 @@ func TestResponseHeader(t *testing.T) {
 
 func TestStatusUnary(t *testing.T) {
 	ctx := context.Background()
-	ts := NewServer(t, []string{}, "testdata/route_guide.proto")
+	ts := NewServer(t, "testdata/route_guide.proto")
 	t.Cleanup(func() {
 		ts.Close()
 	})
@@ -472,7 +472,7 @@ func TestStatusUnary(t *testing.T) {
 
 func TestStatusServerStreaming(t *testing.T) {
 	ctx := context.Background()
-	ts := NewServer(t, []string{}, "testdata/route_guide.proto")
+	ts := NewServer(t, "testdata/route_guide.proto")
 	t.Cleanup(func() {
 		ts.Close()
 	})
@@ -518,7 +518,7 @@ func TestStatusServerStreaming(t *testing.T) {
 
 func TestStatusClientStreaming(t *testing.T) {
 	ctx := context.Background()
-	ts := NewServer(t, []string{}, "testdata/route_guide.proto")
+	ts := NewServer(t, "testdata/route_guide.proto")
 	t.Cleanup(func() {
 		ts.Close()
 	})
@@ -566,7 +566,7 @@ func TestStatusClientStreaming(t *testing.T) {
 
 func TestStatusBiStreaming(t *testing.T) {
 	ctx := context.Background()
-	ts := NewServer(t, []string{}, "testdata/route_guide.proto")
+	ts := NewServer(t, "testdata/route_guide.proto")
 	t.Cleanup(func() {
 		ts.Close()
 	})
@@ -635,7 +635,7 @@ func TestLoadProto(t *testing.T) {
 	ctx := context.Background()
 	for _, tt := range tests {
 		t.Run(tt.proto, func(t *testing.T) {
-			ts := NewServer(t, []string{}, tt.proto)
+			ts := NewServer(t, tt.proto)
 			t.Cleanup(func() {
 				ts.Close()
 			})
@@ -676,7 +676,7 @@ func TestTLSServer(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	ts := NewTLSServer(t, cacert, cert, key, []string{}, "testdata/route_guide.proto")
+	ts := NewTLSServer(t, "testdata/route_guide.proto", cacert, cert, key)
 	t.Cleanup(func() {
 		ts.Close()
 	})
