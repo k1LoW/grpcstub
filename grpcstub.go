@@ -7,6 +7,7 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net"
 	"os"
@@ -258,7 +259,7 @@ func (m *matcher) Match(fn func(r *Request) bool) *matcher {
 	return m
 }
 
-// Method create request matcher using service.
+// Service create request matcher using service.
 func (s *Server) Service(service string) *matcher {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -270,13 +271,23 @@ func (s *Server) Service(service string) *matcher {
 	return m
 }
 
-// Method append request matcher using service.
+// Service append request matcher using service.
 func (m *matcher) Service(service string) *matcher {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	fn := serviceMatchFunc(service)
 	m.matchFuncs = append(m.matchFuncs, fn)
 	return m
+}
+
+// Servicef create request matcher using sprintf-ed service.
+func (s *Server) Servicef(format string, a ...any) *matcher {
+	return s.Service(fmt.Sprintf(format, a...))
+}
+
+// Servicef append request matcher using sprintf-ed service.
+func (m *matcher) Servicef(format string, a ...any) *matcher {
+	return m.Service(fmt.Sprintf(format, a...))
 }
 
 // Method create request matcher using method.
@@ -298,6 +309,16 @@ func (m *matcher) Method(method string) *matcher {
 	fn := methodMatchFunc(method)
 	m.matchFuncs = append(m.matchFuncs, fn)
 	return m
+}
+
+// Methodf create request matcher using sprintf-ed method.
+func (s *Server) Methodf(format string, a ...any) *matcher {
+	return s.Method(fmt.Sprintf(format, a...))
+}
+
+// Methodf append request matcher using sprintf-ed method.
+func (m *matcher) Methodf(format string, a ...any) *matcher {
+	return m.Method(fmt.Sprintf(format, a...))
 }
 
 // Header append handler which append header to response.
@@ -373,6 +394,11 @@ func (m *matcher) ResponseString(message string) *matcher {
 	mes := make(map[string]interface{})
 	_ = json.Unmarshal([]byte(message), &mes)
 	return m.Response(mes)
+}
+
+// ResponseStringf set hander which return sprintf-ed response.
+func (m *matcher) ResponseStringf(format string, a ...any) *matcher {
+	return m.ResponseString(fmt.Sprintf(format, a...))
 }
 
 // Status set status which return response.
