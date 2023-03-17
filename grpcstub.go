@@ -856,9 +856,21 @@ func registerFileDescriptors(fds []*desc.FileDescriptor) (err error) {
 		return err
 	}
 	registry.RangeFiles(func(fd protoreflect.FileDescriptor) bool {
-		if ofd, _ := protoregistry.GlobalFiles.FindFileByPath(fd.Path()); ofd != nil {
+		if _, err := protoregistry.GlobalFiles.FindFileByPath(fd.Path()); !errors.Is(protoregistry.NotFound, err) {
 			return true
 		}
+
+		// Skip registration of conflicted descriptors
+		conflict := false
+		rangeTopLevelDescriptors(fd, func(d protoreflect.Descriptor) {
+			if _, err := protoregistry.GlobalFiles.FindDescriptorByName(d.FullName()); err == nil {
+				conflict = true
+			}
+		})
+		if conflict {
+			return true
+		}
+
 		err = protoregistry.GlobalFiles.RegisterFile(fd)
 		return (err == nil)
 	})
@@ -872,4 +884,28 @@ func contains(s []string, e string) bool {
 		}
 	}
 	return false
+}
+
+// copy from google.golang.org/protobuf/reflect/protoregistry
+func rangeTopLevelDescriptors(fd protoreflect.FileDescriptor, f func(protoreflect.Descriptor)) {
+	eds := fd.Enums()
+	for i := eds.Len() - 1; i >= 0; i-- {
+		f(eds.Get(i))
+		vds := eds.Get(i).Values()
+		for i := vds.Len() - 1; i >= 0; i-- {
+			f(vds.Get(i))
+		}
+	}
+	mds := fd.Messages()
+	for i := mds.Len() - 1; i >= 0; i-- {
+		f(mds.Get(i))
+	}
+	xds := fd.Extensions()
+	for i := xds.Len() - 1; i >= 0; i-- {
+		f(xds.Get(i))
+	}
+	sds := fd.Services()
+	for i := sds.Len() - 1; i >= 0; i-- {
+		f(sds.Get(i))
+	}
 }
