@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.7.0](https://github.com/k1LoW/grpcstub/compare/v0.6.2...v0.7.0) - 2023-03-17
+- [BREAKING] Support dir path for `Proto` by @k1LoW in https://github.com/k1LoW/grpcstub/pull/25
+- [BREAKING] Skip registration of conflicted descriptors by @k1LoW in https://github.com/k1LoW/grpcstub/pull/27
+
 ## [v0.6.2](https://github.com/k1LoW/grpcstub/compare/v0.6.1...v0.6.2) - 2023-03-07
 - Bump golang.org/x/text from 0.3.3 to 0.3.8 by @dependabot in https://github.com/k1LoW/grpcstub/pull/22
 - Bump golang.org/x/net from 0.0.0-20201021035429-f5854403a974 to 0.7.0 by @dependabot in https://github.com/k1LoW/grpcstub/pull/24
