@@ -105,10 +105,10 @@ type matchFunc func(r *Request) bool
 type handlerFunc func(r *Request) *Response
 
 // NewServer returns a new server with registered *grpc.Server
-func NewServer(t *testing.T, proto string, opts ...Option) *Server {
+func NewServer(t *testing.T, protopath string, opts ...Option) *Server {
 	t.Helper()
 	c := &config{}
-	opts = append(opts, Proto(proto))
+	opts = append(opts, Proto(protopath))
 	for _, opt := range opts {
 		if err := opt(c); err != nil {
 			t.Fatal(err)
@@ -812,37 +812,29 @@ func descriptorFromFiles(importPaths []string, protos ...string) ([]*desc.FileDe
 }
 
 func resolvePaths(importPaths []string, protos ...string) ([]string, []string, func(filename string) (io.ReadCloser, error), error) {
-	var prefix string
-	resolvedIPaths := []string{}
+	paths := []string{}
+	resolvedIPaths := importPaths
 	resolvedProtos := []string{}
 	for _, p := range importPaths {
-		d, b := filepath.Split(p)
-		if d != "" && prefix == "" {
-			prefix = d
-		}
-		resolvedIPaths = append(resolvedIPaths, b)
+		d, _ := filepath.Split(p)
+		paths = append(paths, d)
 	}
 	for _, p := range protos {
 		d, b := filepath.Split(p)
-		if d != "" && prefix == "" {
-			prefix = d
-		}
+		paths = append(paths, d)
+		resolvedIPaths = append(resolvedIPaths, d)
 		resolvedProtos = append(resolvedProtos, b)
 	}
-	for _, p := range importPaths {
-		d, _ := filepath.Split(p)
-		if d != prefix {
-			return nil, nil, nil, errors.New("could not resolve paths")
-		}
-	}
-	for _, p := range protos {
-		d, _ := filepath.Split(p)
-		if d != prefix {
-			return nil, nil, nil, errors.New("could not resolve paths")
-		}
-	}
+	paths = unique(paths)
+	resolvedIPaths = unique(resolvedIPaths)
+	resolvedProtos = unique(resolvedProtos)
+	opened := []string{}
 	return resolvedIPaths, resolvedProtos, func(filename string) (io.ReadCloser, error) {
-		return os.Open(filepath.Join(prefix, filename))
+		if contains(opened, filename) { // FIXME: Need to resolvePaths well without this condition
+			return io.NopCloser(strings.NewReader("")), nil
+		}
+		opened = append(opened, filename)
+		return os.Open(filename)
 	}, nil
 }
 
@@ -878,4 +870,13 @@ func registerFileDescriptors(fds []*desc.FileDescriptor) (err error) {
 		return (err == nil)
 	})
 	return
+}
+
+func contains(s []string, e string) bool {
+	for _, v := range s {
+		if e == v {
+			return true
+		}
+	}
+	return false
 }
