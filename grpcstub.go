@@ -812,20 +812,13 @@ func descriptorFromFiles(importPaths []string, protos ...string) ([]*desc.FileDe
 }
 
 func resolvePaths(importPaths []string, protos ...string) ([]string, []string, func(filename string) (io.ReadCloser, error), error) {
-	paths := []string{}
 	resolvedIPaths := importPaths
 	resolvedProtos := []string{}
-	for _, p := range importPaths {
-		d, _ := filepath.Split(p)
-		paths = append(paths, d)
-	}
 	for _, p := range protos {
 		d, b := filepath.Split(p)
-		paths = append(paths, d)
 		resolvedIPaths = append(resolvedIPaths, d)
 		resolvedProtos = append(resolvedProtos, b)
 	}
-	paths = unique(paths)
 	resolvedIPaths = unique(resolvedIPaths)
 	resolvedProtos = unique(resolvedProtos)
 	opened := []string{}
