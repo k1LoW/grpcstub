@@ -24,7 +24,6 @@ import (
 	"github.com/jhump/protoreflect/desc"
 	"github.com/jhump/protoreflect/desc/protoparse"
 	"github.com/jhump/protoreflect/dynamic"
-	"github.com/mattn/go-jsonpointer"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
@@ -40,18 +39,6 @@ import (
 )
 
 type Message map[string]interface{}
-
-func (m Message) Get(pointer string) (interface{}, error) {
-	return jsonpointer.Get(m, pointer)
-}
-
-func (m Message) Has(pointer string) bool {
-	return jsonpointer.Has(m, pointer)
-}
-
-func (m Message) Set(pointer string, value interface{}) error {
-	return jsonpointer.Set(m, pointer, value)
-}
 
 type Request struct {
 	Service string

@@ -56,6 +56,7 @@ func TestUnary(t *testing.T) {
 		got := len(ts.Requests())
 		if want := 1; got != want {
 			t.Errorf("got %v\nwant %v", got, want)
+			return
 		}
 	}
 }
