@@ -667,7 +667,7 @@ func TestLoadProto(t *testing.T) {
 	}
 }
 
-func TestRepeated(t *testing.T) {
+func TestTime(t *testing.T) {
 	tests := []struct {
 		res map[string]interface{}
 	}{
@@ -700,6 +700,9 @@ func TestRepeated(t *testing.T) {
 		}
 		if diff := cmp.Diff(got.Hello, tt.res["hello"], nil); diff != "" {
 			t.Errorf("%s", diff)
+		}
+		if got.CreateTime.AsTime().UnixNano() != tt.res["create_time"].(time.Time).UnixNano() {
+			t.Errorf("got %v\nwant %v", got.CreateTime.AsTime(), tt.res["create_time"].(time.Time))
 		}
 	}
 }

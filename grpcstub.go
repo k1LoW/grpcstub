@@ -923,10 +923,11 @@ func contains(s []string, e string) bool {
 }
 
 func castMessage(message map[string]interface{}) map[string]interface{} {
+	casted := map[string]interface{}{}
 	for k, v := range message {
-		message[k] = cast(v)
+		casted[k] = cast(v)
 	}
-	return message
+	return casted
 }
 
 func cast(in interface{}) interface{} {
