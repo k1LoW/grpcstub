@@ -8,10 +8,12 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/jhump/protoreflect/grpcreflect"
+	"github.com/k1LoW/grpcstub/testdata/hello"
 	"github.com/k1LoW/grpcstub/testdata/routeguide"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -632,7 +634,7 @@ func TestLoadProto(t *testing.T) {
 		proto string
 	}{
 		{"testdata/route_guide.proto"},
-		{"testdata/include_google_protobuf.proto"},
+		{"testdata/hello.proto"},
 		{"testdata/*.proto"},
 	}
 	ctx := context.Background()
@@ -662,6 +664,71 @@ func TestLoadProto(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestTime(t *testing.T) {
+	now := time.Now()
+	tests := []struct {
+		name     string
+		res      map[string]interface{}
+		wantTime time.Time
+	}{
+		{
+			"Cast time.Time to timestamppb.Timestamp",
+			map[string]interface{}{
+				"message":     "hello",
+				"num":         3,
+				"hello":       []string{"hello", "world"},
+				"create_time": now,
+			},
+			now,
+		},
+		{
+			"empty is 0 of UNIX timestamp",
+			map[string]interface{}{
+				"message": "hello",
+				"num":     3,
+				"hello":   []string{"hello", "world"},
+			},
+			time.Unix(0, 0),
+		},
+		{
+			"Cast RFC3339 string to timestamppb.Timestamp",
+			map[string]interface{}{
+				"message":     "hello",
+				"num":         3,
+				"hello":       []string{"hello", "world"},
+				"create_time": now.Format(time.RFC3339),
+			},
+			now,
+		},
+		{
+			"Cast RFC3339Nano string to timestamppb.Timestamp",
+			map[string]interface{}{
+				"message":     "hello",
+				"num":         3,
+				"hello":       []string{"hello", "world"},
+				"create_time": now.Format(time.RFC3339Nano),
+			},
+			now,
+		},
+	}
+	ctx := context.Background()
+	for _, tt := range tests {
+		ts := NewServer(t, "testdata/hello.proto")
+		t.Cleanup(func() {
+			ts.Close()
+		})
+		ts.Method("Hello").Response(tt.res)
+		client := hello.NewGrpcTestServiceClient(ts.Conn())
+		got, err := client.Hello(ctx, &hello.HelloRequest{})
+		if err != nil {
+			t.Error(err)
+		}
+		if got.CreateTime.AsTime().Unix() != tt.wantTime.Unix() {
+			t.Errorf("got %v\nwant %v", got.CreateTime.AsTime(), tt.wantTime)
+		}
 	}
 }
 
