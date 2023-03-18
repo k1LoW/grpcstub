@@ -716,19 +716,21 @@ func TestTime(t *testing.T) {
 	}
 	ctx := context.Background()
 	for _, tt := range tests {
-		ts := NewServer(t, "testdata/hello.proto")
-		t.Cleanup(func() {
-			ts.Close()
+		t.Run(tt.name, func(t *testing.T) {
+			ts := NewServer(t, "testdata/hello.proto")
+			t.Cleanup(func() {
+				ts.Close()
+			})
+			ts.Method("Hello").Response(tt.res)
+			client := hello.NewGrpcTestServiceClient(ts.Conn())
+			got, err := client.Hello(ctx, &hello.HelloRequest{})
+			if err != nil {
+				t.Error(err)
+			}
+			if got.CreateTime.AsTime().Unix() != tt.wantTime.Unix() {
+				t.Errorf("got %v\nwant %v", got.CreateTime.AsTime(), tt.wantTime)
+			}
 		})
-		ts.Method("Hello").Response(tt.res)
-		client := hello.NewGrpcTestServiceClient(ts.Conn())
-		got, err := client.Hello(ctx, &hello.HelloRequest{})
-		if err != nil {
-			t.Error(err)
-		}
-		if got.CreateTime.AsTime().Unix() != tt.wantTime.Unix() {
-			t.Errorf("got %v\nwant %v", got.CreateTime.AsTime(), tt.wantTime)
-		}
 	}
 }
 
