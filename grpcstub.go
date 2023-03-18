@@ -327,43 +327,33 @@ func (m *matcher) Methodf(format string, a ...any) *matcher {
 
 // Header append handler which append header to response.
 func (m *matcher) Header(key, value string) *matcher {
-	var fn handlerFunc
-	if m.handler == nil {
-		fn = func(r *Request, md *desc.MethodDescriptor) *Response {
-			res := NewResponse()
-			res.Headers.Append(key, value)
-			return res
+	prev := m.handler
+	m.handler = func(r *Request, md *desc.MethodDescriptor) *Response {
+		var res *Response
+		if prev == nil {
+			res = NewResponse()
+		} else {
+			res = prev(r, md)
 		}
-	} else {
-		prev := m.handler
-		fn = func(r *Request, md *desc.MethodDescriptor) *Response {
-			res := prev(r, md)
-			res.Headers.Append(key, value)
-			return res
-		}
+		res.Headers.Append(key, value)
+		return res
 	}
-	m.handler = fn
 	return m
 }
 
 // Trailer append handler which append trailer to response.
 func (m *matcher) Trailer(key, value string) *matcher {
-	var fn handlerFunc
-	if m.handler == nil {
-		fn = func(r *Request, md *desc.MethodDescriptor) *Response {
-			res := NewResponse()
-			res.Trailers.Append(key, value)
-			return res
+	prev := m.handler
+	m.handler = func(r *Request, md *desc.MethodDescriptor) *Response {
+		var res *Response
+		if prev == nil {
+			res = NewResponse()
+		} else {
+			res = prev(r, md)
 		}
-	} else {
-		prev := m.handler
-		fn = func(r *Request, md *desc.MethodDescriptor) *Response {
-			res := prev(r, md)
-			res.Trailers.Append(key, value)
-			return res
-		}
+		res.Trailers.Append(key, value)
+		return res
 	}
-	m.handler = fn
 	return m
 }
 
@@ -376,22 +366,17 @@ func (m *matcher) Handler(fn func(r *Request) *Response) {
 
 // Response set hander which return response.
 func (m *matcher) Response(message map[string]interface{}) *matcher {
-	var fn handlerFunc
-	if m.handler == nil {
-		fn = func(r *Request, md *desc.MethodDescriptor) *Response {
-			res := NewResponse()
-			res.Messages = append(res.Messages, message)
-			return res
+	prev := m.handler
+	m.handler = func(r *Request, md *desc.MethodDescriptor) *Response {
+		var res *Response
+		if prev == nil {
+			res = NewResponse()
+		} else {
+			res = prev(r, md)
 		}
-	} else {
-		prev := m.handler
-		fn = func(r *Request, md *desc.MethodDescriptor) *Response {
-			res := prev(r, md)
-			res.Messages = append(res.Messages, message)
-			return res
-		}
+		res.Messages = append(res.Messages, message)
+		return res
 	}
-	m.handler = fn
 	return m
 }
 
@@ -409,55 +394,39 @@ func (m *matcher) ResponseStringf(format string, a ...any) *matcher {
 
 func (m *matcher) ResponseDynamic() *matcher {
 	const messageMax = 5
-	var fn handlerFunc
-	if m.handler == nil {
-		fn = func(r *Request, md *desc.MethodDescriptor) *Response {
-			res := NewResponse()
-			if !md.IsClientStreaming() && !md.IsServerStreaming() {
-				res.Messages = append(res.Messages, generateDynamicMessage(md.GetOutputType()))
-			} else {
-				for i := 0; i > rand.Intn(messageMax)+1; i++ {
-					res.Messages = append(res.Messages, generateDynamicMessage(md.GetOutputType()))
-				}
-			}
-			return res
+	prev := m.handler
+	m.handler = func(r *Request, md *desc.MethodDescriptor) *Response {
+		var res *Response
+		if prev == nil {
+			res = NewResponse()
+		} else {
+			res = prev(r, md)
 		}
-	} else {
-		prev := m.handler
-		fn = func(r *Request, md *desc.MethodDescriptor) *Response {
-			res := prev(r, md)
-			if !md.IsClientStreaming() && !md.IsServerStreaming() {
+		if !md.IsClientStreaming() && !md.IsServerStreaming() {
+			res.Messages = append(res.Messages, generateDynamicMessage(md.GetOutputType()))
+		} else {
+			for i := 0; i > rand.Intn(messageMax)+1; i++ {
 				res.Messages = append(res.Messages, generateDynamicMessage(md.GetOutputType()))
-			} else {
-				for i := 0; i > rand.Intn(messageMax)+1; i++ {
-					res.Messages = append(res.Messages, generateDynamicMessage(md.GetOutputType()))
-				}
 			}
-			return res
 		}
+		return res
 	}
-	m.handler = fn
 	return m
 }
 
 // Status set status which return response.
 func (m *matcher) Status(s *status.Status) *matcher {
-	var fn handlerFunc
-	if m.handler == nil {
-		fn = func(r *Request, md *desc.MethodDescriptor) *Response {
-			res := NewResponse()
-			res.Status = s
-			return res
+	prev := m.handler
+	m.handler = func(r *Request, md *desc.MethodDescriptor) *Response {
+		var res *Response
+		if prev == nil {
+			res = NewResponse()
+		} else {
+			res = prev(r, md)
 		}
-	} else {
-		prev := m.handler
-		fn = func(r *Request, md *desc.MethodDescriptor) *Response {
-			res := prev(r, md)
-			res.Status = s
-			return res
-		}
+		res.Status = s
+		return res
 	}
-	m.handler = fn
 	return m
 }
 
