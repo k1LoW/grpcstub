@@ -17,6 +17,7 @@ type config struct {
 
 type Option func(*config) error
 
+// Proto append proto
 func Proto(proto string) Option {
 	return func(c *config) error {
 		protos := []string{}
@@ -52,6 +53,7 @@ func Proto(proto string) Option {
 	}
 }
 
+// Protos append protos
 func Protos(protos []string) Option {
 	return func(c *config) error {
 		for _, p := range protos {
@@ -64,6 +66,15 @@ func Protos(protos []string) Option {
 	}
 }
 
+// ImportPath set import path
+func ImportPath(path string) Option {
+	return func(c *config) error {
+		c.importPaths = unique(append(c.importPaths, path))
+		return nil
+	}
+}
+
+// ImportPaths set import paths
 func ImportPaths(paths []string) Option {
 	return func(c *config) error {
 		c.importPaths = unique(append(c.importPaths, paths...))
@@ -71,6 +82,7 @@ func ImportPaths(paths []string) Option {
 	}
 }
 
+// UseTLS enable TLS
 func UseTLS(cacert, cert, key []byte) Option {
 	return func(c *config) error {
 		c.useTLS = true
