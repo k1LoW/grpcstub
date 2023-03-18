@@ -964,37 +964,50 @@ var fk = faker.New()
 
 func generateDynamicMessage(m *desc.MessageDescriptor) map[string]interface{} {
 	const (
-		floatMin = 0
-		floatMax = 10000
-		wMin     = 1
-		wMax     = 25
+		floatMin  = 0
+		floatMax  = 10000
+		wMin      = 1
+		wMax      = 25
+		repeatMax = 5
 	)
 	message := map[string]interface{}{}
 	for _, f := range m.GetFields() {
+		values := []interface{}{}
+		l := 1
+		if f.IsRepeated() {
+			l = rand.Intn(repeatMax) + 1
+		}
+		for i := 0; i < l; i++ {
+			switch f.GetType() {
+			case descriptorpb.FieldDescriptorProto_TYPE_DOUBLE, descriptorpb.FieldDescriptorProto_TYPE_FLOAT:
+				values = append(values, fk.Float64(1, floatMin, floatMax))
+			case descriptorpb.FieldDescriptorProto_TYPE_INT64, descriptorpb.FieldDescriptorProto_TYPE_FIXED64, descriptorpb.FieldDescriptorProto_TYPE_SFIXED64, descriptorpb.FieldDescriptorProto_TYPE_SINT64:
+				values = append(values, fk.Int64())
+			case descriptorpb.FieldDescriptorProto_TYPE_INT32, descriptorpb.FieldDescriptorProto_TYPE_FIXED32, descriptorpb.FieldDescriptorProto_TYPE_SFIXED32, descriptorpb.FieldDescriptorProto_TYPE_SINT32:
+				values = append(values, fk.Int32())
+			case descriptorpb.FieldDescriptorProto_TYPE_UINT64:
+				values = append(values, fk.UInt64())
+			case descriptorpb.FieldDescriptorProto_TYPE_UINT32:
+				values = append(values, fk.UInt32())
+			case descriptorpb.FieldDescriptorProto_TYPE_BOOL:
+				values = append(values, fk.Bool())
+			case descriptorpb.FieldDescriptorProto_TYPE_STRING:
+				values = append(values, fk.Lorem().Sentence(rand.Intn(wMax-wMin+1)+wMin))
+			case descriptorpb.FieldDescriptorProto_TYPE_GROUP:
+				// Group type is deprecated and not supported in proto3.
+			case descriptorpb.FieldDescriptorProto_TYPE_MESSAGE:
+				values = append(values, generateDynamicMessage(f.GetMessageType()))
+			case descriptorpb.FieldDescriptorProto_TYPE_BYTES:
+				values = append(values, fk.Lorem().Bytes(rand.Intn(wMax-wMin+1)+wMin))
+			case descriptorpb.FieldDescriptorProto_TYPE_ENUM:
+				values = append(values, f.GetEnumType().GetValues()[0].GetNumber())
+			}
+		}
 		n := f.GetJSONName()
-		switch f.GetType() {
-		case descriptorpb.FieldDescriptorProto_TYPE_DOUBLE, descriptorpb.FieldDescriptorProto_TYPE_FLOAT:
-			message[n] = fk.Float64(1, floatMin, floatMax)
-		case descriptorpb.FieldDescriptorProto_TYPE_INT64, descriptorpb.FieldDescriptorProto_TYPE_FIXED64, descriptorpb.FieldDescriptorProto_TYPE_SFIXED64, descriptorpb.FieldDescriptorProto_TYPE_SINT64:
-			message[n] = fk.Int64()
-		case descriptorpb.FieldDescriptorProto_TYPE_INT32, descriptorpb.FieldDescriptorProto_TYPE_FIXED32, descriptorpb.FieldDescriptorProto_TYPE_SFIXED32, descriptorpb.FieldDescriptorProto_TYPE_SINT32:
-			message[n] = fk.Int32()
-		case descriptorpb.FieldDescriptorProto_TYPE_UINT64:
-			message[n] = fk.UInt64()
-		case descriptorpb.FieldDescriptorProto_TYPE_UINT32:
-			message[n] = fk.UInt32()
-		case descriptorpb.FieldDescriptorProto_TYPE_BOOL:
-			message[n] = fk.Bool()
-		case descriptorpb.FieldDescriptorProto_TYPE_STRING:
-			message[n] = fk.Lorem().Sentence(rand.Intn(wMax-wMin+1) + wMin)
-		case descriptorpb.FieldDescriptorProto_TYPE_GROUP:
-			// Group type is deprecated and not supported in proto3.
-		case descriptorpb.FieldDescriptorProto_TYPE_MESSAGE:
-			message[n] = generateDynamicMessage(f.GetMessageType())
-		case descriptorpb.FieldDescriptorProto_TYPE_BYTES:
-			message[n] = fk.Lorem().Bytes(rand.Intn(wMax-wMin+1) + wMin)
-		case descriptorpb.FieldDescriptorProto_TYPE_ENUM:
-			message[n] = f.GetEnumType().GetValues()[0].GetNumber()
+		if f.IsRepeated() {
+			message[n] = values
+		} else {
+			message[n] = values[0]
 		}
 	}
 	return message
