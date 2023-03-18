@@ -112,7 +112,6 @@ type handlerFunc func(r *Request, md *desc.MethodDescriptor) *Response
 // NewServer returns a new server with registered *grpc.Server
 func NewServer(t *testing.T, protopath string, opts ...Option) *Server {
 	t.Helper()
-	rand.Seed(time.Now().UnixNano())
 	c := &config{}
 	opts = append(opts, Proto(protopath))
 	for _, opt := range opts {
@@ -974,8 +973,11 @@ func generateDynamicMessage(m *desc.MessageDescriptor) map[string]interface{} {
 	for _, f := range m.GetFields() {
 		values := []interface{}{}
 		l := 1
+		if f.IsProto3Optional() {
+			l = rand.Intn(2)
+		}
 		if f.IsRepeated() {
-			l = rand.Intn(repeatMax) + 1
+			l = rand.Intn(repeatMax) + l
 		}
 		for i := 0; i < l; i++ {
 			switch f.GetType() {
@@ -1007,7 +1009,9 @@ func generateDynamicMessage(m *desc.MessageDescriptor) map[string]interface{} {
 		if f.IsRepeated() {
 			message[n] = values
 		} else {
-			message[n] = values[0]
+			if len(values) > 0 {
+				message[n] = values[0]
+			}
 		}
 	}
 	return message
