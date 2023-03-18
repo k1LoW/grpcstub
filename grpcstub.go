@@ -36,6 +36,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/descriptorpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type Message map[string]interface{}
@@ -374,7 +375,7 @@ func (m *matcher) Response(message map[string]interface{}) *matcher {
 		} else {
 			res = prev(r, md)
 		}
-		res.Messages = append(res.Messages, message)
+		res.Messages = append(res.Messages, castMessage(message))
 		return res
 	}
 	return m
@@ -921,6 +922,34 @@ func contains(s []string, e string) bool {
 	return false
 }
 
+func castMessage(message map[string]interface{}) map[string]interface{} {
+	for k, v := range message {
+		message[k] = cast(v)
+	}
+	return message
+}
+
+func cast(in interface{}) interface{} {
+	switch v := in.(type) {
+	case time.Time:
+		return timestamppb.New(v)
+	case []interface{}:
+		casted := []interface{}{}
+		for _, vv := range v {
+			casted = append(casted, cast(vv))
+		}
+		return casted
+	case map[string]interface{}:
+		casted := map[string]interface{}{}
+		for k, vv := range v {
+			casted[k] = cast(vv)
+		}
+		return casted
+	default:
+		return v
+	}
+}
+
 var fk = faker.New()
 
 func generateDynamicMessage(m *desc.MessageDescriptor) map[string]interface{} {
@@ -932,29 +961,30 @@ func generateDynamicMessage(m *desc.MessageDescriptor) map[string]interface{} {
 	)
 	message := map[string]interface{}{}
 	for _, f := range m.GetFields() {
+		n := f.GetJSONName()
 		switch f.GetType() {
 		case descriptorpb.FieldDescriptorProto_TYPE_DOUBLE, descriptorpb.FieldDescriptorProto_TYPE_FLOAT:
-			message[f.GetJSONName()] = fk.Float64(1, floatMin, floatMax)
+			message[n] = fk.Float64(1, floatMin, floatMax)
 		case descriptorpb.FieldDescriptorProto_TYPE_INT64, descriptorpb.FieldDescriptorProto_TYPE_FIXED64, descriptorpb.FieldDescriptorProto_TYPE_SFIXED64, descriptorpb.FieldDescriptorProto_TYPE_SINT64:
-			message[f.GetJSONName()] = fk.Int64()
+			message[n] = fk.Int64()
 		case descriptorpb.FieldDescriptorProto_TYPE_INT32, descriptorpb.FieldDescriptorProto_TYPE_FIXED32, descriptorpb.FieldDescriptorProto_TYPE_SFIXED32, descriptorpb.FieldDescriptorProto_TYPE_SINT32:
-			message[f.GetJSONName()] = fk.Int32()
+			message[n] = fk.Int32()
 		case descriptorpb.FieldDescriptorProto_TYPE_UINT64:
-			message[f.GetJSONName()] = fk.UInt64()
+			message[n] = fk.UInt64()
 		case descriptorpb.FieldDescriptorProto_TYPE_UINT32:
-			message[f.GetJSONName()] = fk.UInt32()
+			message[n] = fk.UInt32()
 		case descriptorpb.FieldDescriptorProto_TYPE_BOOL:
-			message[f.GetJSONName()] = fk.Bool()
+			message[n] = fk.Bool()
 		case descriptorpb.FieldDescriptorProto_TYPE_STRING:
-			message[f.GetJSONName()] = fk.Lorem().Sentence(rand.Intn(wMax-wMin+1) + wMin)
+			message[n] = fk.Lorem().Sentence(rand.Intn(wMax-wMin+1) + wMin)
 		case descriptorpb.FieldDescriptorProto_TYPE_GROUP:
 			// Group type is deprecated and not supported in proto3.
 		case descriptorpb.FieldDescriptorProto_TYPE_MESSAGE:
-			message[f.GetJSONName()] = generateDynamicMessage(f.GetMessageType())
+			message[n] = generateDynamicMessage(f.GetMessageType())
 		case descriptorpb.FieldDescriptorProto_TYPE_BYTES:
-			message[f.GetJSONName()] = fk.Lorem().Bytes(rand.Intn(wMax-wMin+1) + wMin)
+			message[n] = fk.Lorem().Bytes(rand.Intn(wMax-wMin+1) + wMin)
 		case descriptorpb.FieldDescriptorProto_TYPE_ENUM:
-			message[f.GetJSONName()] = f.GetEnumType().GetValues()[0].GetNumber()
+			message[n] = f.GetEnumType().GetValues()[0].GetNumber()
 		}
 	}
 	return message
