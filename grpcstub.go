@@ -364,7 +364,7 @@ func (m *matcher) Handler(fn func(r *Request) *Response) {
 	}
 }
 
-// Response set hander which return response.
+// Response set handler which return response.
 func (m *matcher) Response(message map[string]interface{}) *matcher {
 	prev := m.handler
 	m.handler = func(r *Request, md *desc.MethodDescriptor) *Response {
@@ -380,18 +380,19 @@ func (m *matcher) Response(message map[string]interface{}) *matcher {
 	return m
 }
 
-// ResponseString set hander which return response.
+// ResponseString set handler which return response.
 func (m *matcher) ResponseString(message string) *matcher {
 	mes := make(map[string]interface{})
 	_ = json.Unmarshal([]byte(message), &mes)
 	return m.Response(mes)
 }
 
-// ResponseStringf set hander which return sprintf-ed response.
+// ResponseStringf set handler which return sprintf-ed response.
 func (m *matcher) ResponseStringf(format string, a ...any) *matcher {
 	return m.ResponseString(fmt.Sprintf(format, a...))
 }
 
+// ResponseDynamic set handler which return dynamic response.
 func (m *matcher) ResponseDynamic() *matcher {
 	const messageMax = 5
 	prev := m.handler
@@ -414,7 +415,7 @@ func (m *matcher) ResponseDynamic() *matcher {
 	return m
 }
 
-// Status set status which return response.
+// Status set handler which return response with status
 func (m *matcher) Status(s *status.Status) *matcher {
 	prev := m.handler
 	m.handler = func(r *Request, md *desc.MethodDescriptor) *Response {
