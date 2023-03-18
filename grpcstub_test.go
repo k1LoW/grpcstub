@@ -633,6 +633,7 @@ func TestLoadProto(t *testing.T) {
 	}{
 		{"testdata/route_guide.proto"},
 		{"testdata/include_google_protobuf.proto"},
+		{"testdata/*.proto"},
 	}
 	ctx := context.Background()
 	for _, tt := range tests {
