@@ -56,6 +56,15 @@ func TestUnary(t *testing.T) {
 		got := len(ts.Requests())
 		if want := 1; got != want {
 			t.Errorf("got %v\nwant %v", got, want)
+			return
+		}
+	}
+
+	req := ts.Requests()[0]
+	{
+		got := int32(req.Message["longitude"].(float64))
+		if want := int32(13); got != want {
+			t.Errorf("got %v\nwant %v", got, want)
 		}
 	}
 }
@@ -166,8 +175,8 @@ func TestBiStreaming(t *testing.T) {
 		ts.Close()
 	})
 	ts.Method("RouteChat").Match(func(r *Request) bool {
-		m, err := r.Message.Get("/message")
-		if err != nil {
+		m, ok := r.Message["message"]
+		if !ok {
 			return false
 		}
 		return strings.Contains(m.(string), "hello from client[0]")
@@ -177,13 +186,13 @@ func TestBiStreaming(t *testing.T) {
 		Header("hello", "header").
 		Handler(func(r *Request) *Response {
 			res := NewResponse()
-			m, err := r.Message.Get("/message")
-			if err != nil {
+			m, ok := r.Message["message"]
+			if !ok {
 				res.Status = status.New(codes.Unknown, codes.Unknown.String())
 				return res
 			}
 			mes := Message{}
-			_ = mes.Set("/message", strings.Replace(m.(string), "client", "server", 1))
+			mes["message"] = strings.Replace(m.(string), "client", "server", 1)
 			res.Messages = []Message{mes}
 			return res
 		})

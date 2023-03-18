@@ -41,7 +41,7 @@ func TestClient(t *testing.T) {
 	}
 	req := ts.Requests()[0]
 	{
-		got := req.Message.Get("/longitude").(int32)
+		got := int32(req.Message["longitude"].(float64))
 		if want := int32(13); got != want {
 			t.Errorf("got %v\nwant %v", got, want)
 		}
