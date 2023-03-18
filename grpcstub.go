@@ -19,6 +19,7 @@ import (
 
 	"github.com/golang/protobuf/jsonpb" //nolint
 	"github.com/golang/protobuf/proto"  //nolint
+	"github.com/jaswdr/faker"
 	"github.com/jhump/protoreflect/desc"
 	"github.com/jhump/protoreflect/desc/protoparse"
 	"github.com/jhump/protoreflect/dynamic"
@@ -33,6 +34,7 @@ import (
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
+	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 type Message map[string]interface{}
@@ -103,7 +105,7 @@ type matcher struct {
 }
 
 type matchFunc func(r *Request) bool
-type handlerFunc func(r *Request) *Response
+type handlerFunc func(r *Request, md *desc.MethodDescriptor) *Response
 
 // NewServer returns a new server with registered *grpc.Server
 func NewServer(t *testing.T, protopath string, opts ...Option) *Server {
@@ -325,15 +327,15 @@ func (m *matcher) Methodf(format string, a ...any) *matcher {
 func (m *matcher) Header(key, value string) *matcher {
 	var fn handlerFunc
 	if m.handler == nil {
-		fn = func(r *Request) *Response {
+		fn = func(r *Request, md *desc.MethodDescriptor) *Response {
 			res := NewResponse()
 			res.Headers.Append(key, value)
 			return res
 		}
 	} else {
 		prev := m.handler
-		fn = func(r *Request) *Response {
-			res := prev(r)
+		fn = func(r *Request, md *desc.MethodDescriptor) *Response {
+			res := prev(r, md)
 			res.Headers.Append(key, value)
 			return res
 		}
@@ -346,15 +348,15 @@ func (m *matcher) Header(key, value string) *matcher {
 func (m *matcher) Trailer(key, value string) *matcher {
 	var fn handlerFunc
 	if m.handler == nil {
-		fn = func(r *Request) *Response {
+		fn = func(r *Request, md *desc.MethodDescriptor) *Response {
 			res := NewResponse()
 			res.Trailers.Append(key, value)
 			return res
 		}
 	} else {
 		prev := m.handler
-		fn = func(r *Request) *Response {
-			res := prev(r)
+		fn = func(r *Request, md *desc.MethodDescriptor) *Response {
+			res := prev(r, md)
 			res.Trailers.Append(key, value)
 			return res
 		}
@@ -365,22 +367,24 @@ func (m *matcher) Trailer(key, value string) *matcher {
 
 // Handler set handler
 func (m *matcher) Handler(fn func(r *Request) *Response) {
-	m.handler = fn
+	m.handler = func(r *Request, md *desc.MethodDescriptor) *Response {
+		return fn(r)
+	}
 }
 
 // Response set hander which return response.
 func (m *matcher) Response(message map[string]interface{}) *matcher {
 	var fn handlerFunc
 	if m.handler == nil {
-		fn = func(r *Request) *Response {
+		fn = func(r *Request, md *desc.MethodDescriptor) *Response {
 			res := NewResponse()
 			res.Messages = append(res.Messages, message)
 			return res
 		}
 	} else {
 		prev := m.handler
-		fn = func(r *Request) *Response {
-			res := prev(r)
+		fn = func(r *Request, md *desc.MethodDescriptor) *Response {
+			res := prev(r, md)
 			res.Messages = append(res.Messages, message)
 			return res
 		}
@@ -401,19 +405,39 @@ func (m *matcher) ResponseStringf(format string, a ...any) *matcher {
 	return m.ResponseString(fmt.Sprintf(format, a...))
 }
 
+func (m *matcher) ResponseDynamic() *matcher {
+	var fn handlerFunc
+	if m.handler == nil {
+		fn = func(r *Request, md *desc.MethodDescriptor) *Response {
+			res := NewResponse()
+			res.Messages = append(res.Messages, generateDynamicMessage(md.GetOutputType()))
+			return res
+		}
+	} else {
+		prev := m.handler
+		fn = func(r *Request, md *desc.MethodDescriptor) *Response {
+			res := prev(r, md)
+			res.Messages = append(res.Messages, generateDynamicMessage(md.GetOutputType()))
+			return res
+		}
+	}
+	m.handler = fn
+	return m
+}
+
 // Status set status which return response.
 func (m *matcher) Status(s *status.Status) *matcher {
 	var fn handlerFunc
 	if m.handler == nil {
-		fn = func(r *Request) *Response {
+		fn = func(r *Request, md *desc.MethodDescriptor) *Response {
 			res := NewResponse()
 			res.Status = s
 			return res
 		}
 	} else {
 		prev := m.handler
-		fn = func(r *Request) *Response {
-			res := prev(r)
+		fn = func(r *Request, md *desc.MethodDescriptor) *Response {
+			res := prev(r, md)
 			res.Status = s
 			return res
 		}
@@ -521,7 +545,7 @@ func (s *Server) createUnaryHandler(md *desc.MethodDescriptor) func(srv interfac
 				m.mu.Lock()
 				m.requests = append(m.requests, r)
 				m.mu.Unlock()
-				res := m.handler(r)
+				res := m.handler(r, md)
 				for k, v := range res.Headers {
 					for _, vv := range v {
 						if err := grpc.SetHeader(ctx, metadata.Pairs(k, vv)); err != nil {
@@ -609,7 +633,7 @@ func (s *Server) createServerStreamingHandler(md *desc.MethodDescriptor) func(sr
 				m.mu.Lock()
 				m.requests = append(m.requests, r)
 				m.mu.Unlock()
-				res := m.handler(r)
+				res := m.handler(r, md)
 				for k, v := range res.Headers {
 					for _, vv := range v {
 						if err := stream.SendHeader(metadata.Pairs(k, vv)); err != nil {
@@ -689,7 +713,7 @@ func (s *Server) createClientStreamingHandler(md *desc.MethodDescriptor) func(sr
 							m.mu.Lock()
 							m.requests = append(m.requests, r)
 							m.mu.Unlock()
-							res := m.handler(r)
+							res := m.handler(r, md)
 							if res.Status != nil && res.Status.Err() != nil {
 								return res.Status.Err()
 							}
@@ -769,7 +793,7 @@ func (s *Server) createBiStreamingHandler(md *desc.MethodDescriptor) func(srv in
 					m.mu.Lock()
 					m.requests = append(m.requests, r)
 					m.mu.Unlock()
-					res := m.handler(r)
+					res := m.handler(r, md)
 					if !headerSent {
 						for k, v := range res.Headers {
 							for _, vv := range v {
@@ -910,6 +934,44 @@ func contains(s []string, e string) bool {
 		}
 	}
 	return false
+}
+
+var fk = faker.New()
+
+func generateDynamicMessage(m *desc.MessageDescriptor) map[string]interface{} {
+	const (
+		floatMin = 0
+		floatMax = 10000
+	)
+
+	message := map[string]interface{}{}
+	for _, f := range m.GetFields() {
+		switch f.GetType() {
+		case descriptorpb.FieldDescriptorProto_TYPE_DOUBLE, descriptorpb.FieldDescriptorProto_TYPE_FLOAT:
+			message[f.GetJSONName()] = fk.Float64(1, floatMin, floatMax)
+		case descriptorpb.FieldDescriptorProto_TYPE_INT64, descriptorpb.FieldDescriptorProto_TYPE_FIXED64, descriptorpb.FieldDescriptorProto_TYPE_SFIXED64, descriptorpb.FieldDescriptorProto_TYPE_SINT64:
+			message[f.GetJSONName()] = fk.Int64()
+		case descriptorpb.FieldDescriptorProto_TYPE_INT32, descriptorpb.FieldDescriptorProto_TYPE_FIXED32, descriptorpb.FieldDescriptorProto_TYPE_SFIXED32, descriptorpb.FieldDescriptorProto_TYPE_SINT32:
+			message[f.GetJSONName()] = fk.Int32()
+		case descriptorpb.FieldDescriptorProto_TYPE_UINT64:
+			message[f.GetJSONName()] = fk.UInt64()
+		case descriptorpb.FieldDescriptorProto_TYPE_UINT32:
+			message[f.GetJSONName()] = fk.UInt32()
+		case descriptorpb.FieldDescriptorProto_TYPE_BOOL:
+			message[f.GetJSONName()] = fk.Bool()
+		case descriptorpb.FieldDescriptorProto_TYPE_STRING:
+			message[f.GetJSONName()] = fk.Lorem().Text(25)
+		case descriptorpb.FieldDescriptorProto_TYPE_GROUP:
+			// Group type is deprecated and not supported in proto3.
+		case descriptorpb.FieldDescriptorProto_TYPE_MESSAGE:
+			message[f.GetJSONName()] = generateDynamicMessage(f.GetMessageType())
+		case descriptorpb.FieldDescriptorProto_TYPE_BYTES:
+			message[f.GetJSONName()] = fk.Lorem().Bytes(25)
+		case descriptorpb.FieldDescriptorProto_TYPE_ENUM:
+			message[f.GetJSONName()] = f.GetEnumType().GetValues()[0].GetNumber()
+		}
+	}
+	return message
 }
 
 // copy from google.golang.org/protobuf/reflect/protoregistry

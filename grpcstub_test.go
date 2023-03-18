@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/jhump/protoreflect/grpcreflect"
 	"github.com/k1LoW/grpcstub/testdata/routeguide"
 	"google.golang.org/grpc"
@@ -707,6 +708,46 @@ func TestTLSServer(t *testing.T) {
 		got := len(ts.Requests())
 		if want := 1; got != want {
 			t.Errorf("got %v\nwant %v", got, want)
+		}
+	}
+}
+
+func TestResponseDynamic(t *testing.T) {
+	ctx := context.Background()
+	ts := NewServer(t, "testdata/route_guide.proto")
+	t.Cleanup(func() {
+		ts.Close()
+	})
+	ts.Method("GetFeature").ResponseDynamic()
+	want := 5
+	responses := []*routeguide.Feature{}
+	for i := 0; i < want; i++ {
+		client := routeguide.NewRouteGuideClient(ts.Conn())
+		res, err := client.GetFeature(ctx, &routeguide.Point{
+			Latitude:  10,
+			Longitude: 13,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		responses = append(responses, res)
+	}
+	{
+		got := len(ts.Requests())
+		if got != want {
+			t.Errorf("got %v\nwant %v", got, want)
+		}
+	}
+	rc := len(responses)
+	for i := 0; i < rc; i++ {
+		a := responses[i%rc]
+		b := responses[(i+1)%rc]
+		opts := []cmp.Option{
+			cmpopts.IgnoreFields(routeguide.Feature{}, "state", "sizeCache", "unknownFields"),
+			cmpopts.IgnoreFields(routeguide.Point{}, "state", "sizeCache", "unknownFields"),
+		}
+		if diff := cmp.Diff(a, b, opts...); diff == "" {
+			t.Errorf("got same responses: %#v", a)
 		}
 	}
 }

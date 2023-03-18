@@ -6,6 +6,7 @@ require (
 	github.com/bmatcuk/doublestar/v4 v4.6.0
 	github.com/golang/protobuf v1.5.2
 	github.com/google/go-cmp v0.5.5
+	github.com/jaswdr/faker v1.16.0
 	github.com/jhump/protoreflect v1.12.0
 	github.com/mattn/go-jsonpointer v0.0.1
 	google.golang.org/grpc v1.38.0
