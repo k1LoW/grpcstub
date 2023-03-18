@@ -8,10 +8,12 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/jhump/protoreflect/grpcreflect"
+	"github.com/k1LoW/grpcstub/testdata/hello"
 	"github.com/k1LoW/grpcstub/testdata/routeguide"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -632,7 +634,7 @@ func TestLoadProto(t *testing.T) {
 		proto string
 	}{
 		{"testdata/route_guide.proto"},
-		{"testdata/include_google_protobuf.proto"},
+		{"testdata/hello.proto"},
 		{"testdata/*.proto"},
 	}
 	ctx := context.Background()
@@ -662,6 +664,43 @@ func TestLoadProto(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestRepeated(t *testing.T) {
+	tests := []struct {
+		res map[string]interface{}
+	}{
+		{
+			map[string]interface{}{
+				"message":     "hello",
+				"num":         3,
+				"hello":       []string{"hello", "world"},
+				"create_time": time.Now(),
+			},
+		},
+	}
+	ctx := context.Background()
+	for _, tt := range tests {
+		ts := NewServer(t, "testdata/hello.proto")
+		t.Cleanup(func() {
+			ts.Close()
+		})
+		ts.Method("Hello").Response(tt.res)
+		client := hello.NewGrpcTestServiceClient(ts.Conn())
+		got, err := client.Hello(ctx, &hello.HelloRequest{})
+		if err != nil {
+			t.Error(err)
+		}
+		if got.Message != tt.res["message"] {
+			t.Errorf("got %v\nwant %v", got.Message, tt.res["message"])
+		}
+		if got.Num != int64(tt.res["num"].(int)) {
+			t.Errorf("got %v\nwant %v", got.Num, tt.res["num"])
+		}
+		if diff := cmp.Diff(got.Hello, tt.res["hello"], nil); diff != "" {
+			t.Errorf("%s", diff)
+		}
 	}
 }
 

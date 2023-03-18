@@ -2,19 +2,19 @@ syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
 
-option go_package="./;grpctest";
+option go_package="./;hello";
 
-package grpctest;
+package hello;
 
 service GrpcTestService {
-	rpc Hello (HelloRequest) returns (HelloResponse); 
+	rpc Hello (HelloRequest) returns (HelloResponse);
 }
 
 message HelloRequest {
 	string name = 1;
 
   int64 num = 2;
-  
+
   google.protobuf.Timestamp request_time = 3;
 }
 
@@ -22,6 +22,8 @@ message HelloResponse {
 	string message = 1;
 
   int64 num = 2;
-  
-  google.protobuf.Timestamp create_time = 3;
+
+  repeated string hello = 3;
+
+  google.protobuf.Timestamp create_time = 4;
 }
