@@ -821,3 +821,20 @@ func TestResponseDynamic(t *testing.T) {
 		}
 	}
 }
+
+func TestResponseDynamicRepeated(t *testing.T) {
+	ctx := context.Background()
+	ts := NewServer(t, "testdata/hello.proto")
+	t.Cleanup(func() {
+		ts.Close()
+	})
+	ts.Method("Hello").ResponseDynamic()
+	client := hello.NewGrpcTestServiceClient(ts.Conn())
+	res, err := client.Hello(ctx, &hello.HelloRequest{})
+	if err != nil {
+		t.Error(err)
+	}
+	if len(res.Hello) == 0 {
+		t.Error("invalid repeated field value")
+	}
+}
