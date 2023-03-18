@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math/rand"
 	"net"
 	"os"
 	"path/filepath"
@@ -110,6 +111,7 @@ type handlerFunc func(r *Request, md *desc.MethodDescriptor) *Response
 // NewServer returns a new server with registered *grpc.Server
 func NewServer(t *testing.T, protopath string, opts ...Option) *Server {
 	t.Helper()
+	rand.Seed(time.Now().UnixNano())
 	c := &config{}
 	opts = append(opts, Proto(protopath))
 	for _, opt := range opts {
@@ -942,8 +944,9 @@ func generateDynamicMessage(m *desc.MessageDescriptor) map[string]interface{} {
 	const (
 		floatMin = 0
 		floatMax = 10000
+		wMin     = 1
+		wMax     = 25
 	)
-
 	message := map[string]interface{}{}
 	for _, f := range m.GetFields() {
 		switch f.GetType() {
@@ -960,13 +963,13 @@ func generateDynamicMessage(m *desc.MessageDescriptor) map[string]interface{} {
 		case descriptorpb.FieldDescriptorProto_TYPE_BOOL:
 			message[f.GetJSONName()] = fk.Bool()
 		case descriptorpb.FieldDescriptorProto_TYPE_STRING:
-			message[f.GetJSONName()] = fk.Lorem().Text(25)
+			message[f.GetJSONName()] = fk.Lorem().Sentence(rand.Intn(wMax-wMin+1) + wMin)
 		case descriptorpb.FieldDescriptorProto_TYPE_GROUP:
 			// Group type is deprecated and not supported in proto3.
 		case descriptorpb.FieldDescriptorProto_TYPE_MESSAGE:
 			message[f.GetJSONName()] = generateDynamicMessage(f.GetMessageType())
 		case descriptorpb.FieldDescriptorProto_TYPE_BYTES:
-			message[f.GetJSONName()] = fk.Lorem().Bytes(25)
+			message[f.GetJSONName()] = fk.Lorem().Bytes(rand.Intn(wMax-wMin+1) + wMin)
 		case descriptorpb.FieldDescriptorProto_TYPE_ENUM:
 			message[f.GetJSONName()] = f.GetEnumType().GetValues()[0].GetNumber()
 		}
