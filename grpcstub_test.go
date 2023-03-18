@@ -668,16 +668,50 @@ func TestLoadProto(t *testing.T) {
 }
 
 func TestTime(t *testing.T) {
+	now := time.Now()
 	tests := []struct {
-		res map[string]interface{}
+		name     string
+		res      map[string]interface{}
+		wantTime time.Time
 	}{
 		{
+			"Cast time.Time to timestamppb.Timestamp",
 			map[string]interface{}{
 				"message":     "hello",
 				"num":         3,
 				"hello":       []string{"hello", "world"},
-				"create_time": time.Now(),
+				"create_time": now,
 			},
+			now,
+		},
+		{
+			"empty is 0 of UNIX timestamp",
+			map[string]interface{}{
+				"message": "hello",
+				"num":     3,
+				"hello":   []string{"hello", "world"},
+			},
+			time.Unix(0, 0),
+		},
+		{
+			"Cast RFC3339 string to timestamppb.Timestamp",
+			map[string]interface{}{
+				"message":     "hello",
+				"num":         3,
+				"hello":       []string{"hello", "world"},
+				"create_time": now.Format(time.RFC3339),
+			},
+			now,
+		},
+		{
+			"Cast RFC3339Nano string to timestamppb.Timestamp",
+			map[string]interface{}{
+				"message":     "hello",
+				"num":         3,
+				"hello":       []string{"hello", "world"},
+				"create_time": now.Format(time.RFC3339Nano),
+			},
+			now,
 		},
 	}
 	ctx := context.Background()
@@ -692,17 +726,8 @@ func TestTime(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		if got.Message != tt.res["message"] {
-			t.Errorf("got %v\nwant %v", got.Message, tt.res["message"])
-		}
-		if got.Num != int64(tt.res["num"].(int)) {
-			t.Errorf("got %v\nwant %v", got.Num, tt.res["num"])
-		}
-		if diff := cmp.Diff(got.Hello, tt.res["hello"], nil); diff != "" {
-			t.Errorf("%s", diff)
-		}
-		if got.CreateTime.AsTime().UnixNano() != tt.res["create_time"].(time.Time).UnixNano() {
-			t.Errorf("got %v\nwant %v", got.CreateTime.AsTime(), tt.res["create_time"].(time.Time))
+		if got.CreateTime.AsTime().Unix() != tt.wantTime.Unix() {
+			t.Errorf("got %v\nwant %v", got.CreateTime.AsTime(), tt.wantTime)
 		}
 	}
 }

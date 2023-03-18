@@ -25,5 +25,5 @@ message HelloResponse {
 
   repeated string hello = 3;
 
-  google.protobuf.Timestamp create_time = 4;
+  optional google.protobuf.Timestamp create_time = 4;
 }

@@ -934,6 +934,15 @@ func cast(in interface{}) interface{} {
 	switch v := in.(type) {
 	case time.Time:
 		return timestamppb.New(v)
+	case string:
+		t, err := time.Parse(time.RFC3339Nano, v)
+		if err != nil {
+			t, err = time.Parse(time.RFC3339, v)
+			if err != nil {
+				return v
+			}
+		}
+		return timestamppb.New(t)
 	case []interface{}:
 		casted := []interface{}{}
 		for _, vv := range v {
