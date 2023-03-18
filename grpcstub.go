@@ -408,18 +408,31 @@ func (m *matcher) ResponseStringf(format string, a ...any) *matcher {
 }
 
 func (m *matcher) ResponseDynamic() *matcher {
+	const messageMax = 5
 	var fn handlerFunc
 	if m.handler == nil {
 		fn = func(r *Request, md *desc.MethodDescriptor) *Response {
 			res := NewResponse()
-			res.Messages = append(res.Messages, generateDynamicMessage(md.GetOutputType()))
+			if !md.IsClientStreaming() && !md.IsServerStreaming() {
+				res.Messages = append(res.Messages, generateDynamicMessage(md.GetOutputType()))
+			} else {
+				for i := 0; i > rand.Intn(messageMax)+1; i++ {
+					res.Messages = append(res.Messages, generateDynamicMessage(md.GetOutputType()))
+				}
+			}
 			return res
 		}
 	} else {
 		prev := m.handler
 		fn = func(r *Request, md *desc.MethodDescriptor) *Response {
 			res := prev(r, md)
-			res.Messages = append(res.Messages, generateDynamicMessage(md.GetOutputType()))
+			if !md.IsClientStreaming() && !md.IsServerStreaming() {
+				res.Messages = append(res.Messages, generateDynamicMessage(md.GetOutputType()))
+			} else {
+				for i := 0; i > rand.Intn(messageMax)+1; i++ {
+					res.Messages = append(res.Messages, generateDynamicMessage(md.GetOutputType()))
+				}
+			}
 			return res
 		}
 	}
