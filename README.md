@@ -15,18 +15,18 @@ import (
 	"testing"
 
 	"github.com/k1LoW/grpcstub"
-	"github.com/k1LoW/myapp/routeguide"
+	"github.com/k1LoW/myapp/proto/gen/go/myapp"
 )
 
 func TestClient(t *testing.T) {
 	ctx := context.Background()
-	ts := grpcstub.NewServer(t, "path/to/route_guide.proto")
+	ts := grpcstub.NewServer(t, "path/to/*.proto")
 	t.Cleanup(func() {
 		ts.Close()
 	})
 	ts.Method("GetFeature").Response(map[string]interface{}{"name": "hello", "location": map[string]interface{}{"latitude": 10, "longitude": 13}})
 
-	client := routeguide.NewRouteGuideClient(ts.Conn())
+	client := myapp.NewRouteGuideClient(ts.Conn())
 	if _, err := client.GetFeature(ctx, &routeguide.Point{
 		Latitude:  10,
 		Longitude: 13,
