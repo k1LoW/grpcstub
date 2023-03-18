@@ -974,8 +974,11 @@ func generateDynamicMessage(m *desc.MessageDescriptor) map[string]interface{} {
 	for _, f := range m.GetFields() {
 		values := []interface{}{}
 		l := 1
+		if f.IsProto3Optional() {
+			l = rand.Intn(1)
+		}
 		if f.IsRepeated() {
-			l = rand.Intn(repeatMax) + 1
+			l = rand.Intn(repeatMax) + l
 		}
 		for i := 0; i < l; i++ {
 			switch f.GetType() {
@@ -1007,7 +1010,9 @@ func generateDynamicMessage(m *desc.MessageDescriptor) map[string]interface{} {
 		if f.IsRepeated() {
 			message[n] = values
 		} else {
-			message[n] = values[0]
+			if len(values) > 0 {
+				message[n] = values[0]
+			}
 		}
 	}
 	return message
