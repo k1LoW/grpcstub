@@ -49,6 +49,50 @@ func TestClient(t *testing.T) {
 }
 ```
 
+## Dynamic Response
+
+grpcstub can return responses dynamically using the protocol buffer schema.
+
+### Dynamic response to all requests
+
+``` go
+ts := grpcstub.NewServer(t, "path/to/*.proto")
+t.Cleanup(func() {
+	ts.Close()
+})
+ts.ResponseDynamic()
+```
+
+### Dynamic response to a request to a specific method (rpc)
+
+``` go
+ts := grpcstub.NewServer(t, "path/to/*.proto")
+t.Cleanup(func() {
+	ts.Close()
+})
+ts.Method("GetFeature").ResponseDynamic()
+```
+
+### Dynamic response with your own generators
+
+``` go
+ts := grpcstub.NewServer(t, "path/to/*.proto")
+t.Cleanup(func() {
+	ts.Close()
+})
+fk := faker.New()
+want := time.Now()
+opts := []GeneratorOption{
+	Generator("*_id", func(r *Request) interface{} {
+		return fk.UUID().V4()
+	}),
+	Generator("*_time", func(r *Request) interface{} {
+		return want
+	}),
+}
+ts.ResponseDynamic(opts...)
+```
+
 ## Test data
 
 - https://github.com/grpc/grpc-go/blob/master/examples/route_guide/routeguide/route_guide.proto
