@@ -1,5 +1,8 @@
 # Changelog
 
+## [v0.8.1](https://github.com/k1LoW/grpcstub/compare/v0.8.0...v0.8.1) - 2023-03-19
+- Allow direct use of ResponseDynamic by @k1LoW in https://github.com/k1LoW/grpcstub/pull/37
+
 ## [v0.8.0](https://github.com/k1LoW/grpcstub/compare/v0.7.0...v0.8.0) - 2023-03-19
 - Add utility methods that embedds fmt.Sprintf by @k1LoW in https://github.com/k1LoW/grpcstub/pull/28
 - Add ImportPath option by @k1LoW in https://github.com/k1LoW/grpcstub/pull/30
