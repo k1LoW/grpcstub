@@ -90,3 +90,26 @@ func TestResponseDynamicGenerated(t *testing.T) {
 		t.Errorf("got %v\nwant %v", res.CreateTime.AsTime().UnixNano(), want.UnixNano())
 	}
 }
+
+func TestResponseDynamicServer(t *testing.T) {
+	ctx := context.Background()
+	ts := NewServer(t, "testdata/hello.proto")
+	t.Cleanup(func() {
+		ts.Close()
+	})
+	want := time.Now()
+	opts := []GeneratorOption{
+		Generator("*_time", func(r *Request) interface{} {
+			return want
+		}),
+	}
+	ts.ResponseDynamic(opts...)
+	client := hello.NewGrpcTestServiceClient(ts.Conn())
+	res, err := client.Hello(ctx, &hello.HelloRequest{})
+	if err != nil {
+		t.Error(err)
+	}
+	if res.CreateTime.AsTime().UnixNano() != want.UnixNano() {
+		t.Errorf("got %v\nwant %v", res.CreateTime.AsTime().UnixNano(), want.UnixNano())
+	}
+}

@@ -130,3 +130,14 @@ func generateDynamicMessage(gs generators, r *Request, m *desc.MessageDescriptor
 	}
 	return message
 }
+
+// ResponseDynamic set handler which return dynamic response.
+func (s *Server) ResponseDynamic(opts ...GeneratorOption) *matcher {
+	m := &matcher{
+		matchFuncs: []matchFunc{func(_ *Request) bool { return true }},
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.matchers = append(s.matchers, m)
+	return m.ResponseDynamic(opts...)
+}
