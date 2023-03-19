@@ -1,5 +1,15 @@
 # Changelog
 
+## [v0.8.0](https://github.com/k1LoW/grpcstub/compare/v0.7.0...v0.8.0) - 2023-03-19
+- Add utility methods that embedds fmt.Sprintf by @k1LoW in https://github.com/k1LoW/grpcstub/pull/28
+- Add ImportPath option by @k1LoW in https://github.com/k1LoW/grpcstub/pull/30
+- Support dynamic response by @k1LoW in https://github.com/k1LoW/grpcstub/pull/31
+- Cast time.Time to timestamppb.Timestamp by @k1LoW in https://github.com/k1LoW/grpcstub/pull/32
+- Support ResponseDynamic to `repeated` by @k1LoW in https://github.com/k1LoW/grpcstub/pull/33
+- Support ResponseDynamic to `optional` by @k1LoW in https://github.com/k1LoW/grpcstub/pull/34
+- Remove methods of Message by @k1LoW in https://github.com/k1LoW/grpcstub/pull/35
+- Support custom generator for ResponseDynamic by @k1LoW in https://github.com/k1LoW/grpcstub/pull/36
+
 ## [v0.7.0](https://github.com/k1LoW/grpcstub/compare/v0.6.2...v0.7.0) - 2023-03-17
 - [BREAKING] Support dir path for `Proto` by @k1LoW in https://github.com/k1LoW/grpcstub/pull/25
 - [BREAKING] Skip registration of conflicted descriptors by @k1LoW in https://github.com/k1LoW/grpcstub/pull/27
