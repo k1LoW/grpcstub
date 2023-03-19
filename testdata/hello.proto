@@ -23,7 +23,9 @@ message HelloResponse {
 
   int64 num = 2;
 
-  repeated string hello = 3;
+  repeated string hellos = 3;
 
-  optional google.protobuf.Timestamp create_time = 4;
+  optional string world = 4;
+
+  google.protobuf.Timestamp create_time = 5;
 }

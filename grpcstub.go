@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"math/rand"
 	"net"
 	"os"
 	"path/filepath"
@@ -20,7 +19,6 @@ import (
 
 	"github.com/golang/protobuf/jsonpb" //nolint
 	"github.com/golang/protobuf/proto"  //nolint
-	"github.com/jaswdr/faker"
 	"github.com/jhump/protoreflect/desc"
 	"github.com/jhump/protoreflect/desc/protoparse"
 	"github.com/jhump/protoreflect/dynamic"
@@ -34,7 +32,6 @@ import (
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
-	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -377,29 +374,6 @@ func (m *matcher) ResponseString(message string) *matcher {
 // ResponseStringf set handler which return sprintf-ed response.
 func (m *matcher) ResponseStringf(format string, a ...any) *matcher {
 	return m.ResponseString(fmt.Sprintf(format, a...))
-}
-
-// ResponseDynamic set handler which return dynamic response.
-func (m *matcher) ResponseDynamic() *matcher {
-	const messageMax = 5
-	prev := m.handler
-	m.handler = func(r *Request, md *desc.MethodDescriptor) *Response {
-		var res *Response
-		if prev == nil {
-			res = NewResponse()
-		} else {
-			res = prev(r, md)
-		}
-		if !md.IsClientStreaming() && !md.IsServerStreaming() {
-			res.Messages = append(res.Messages, generateDynamicMessage(md.GetOutputType()))
-		} else {
-			for i := 0; i > rand.Intn(messageMax)+1; i++ {
-				res.Messages = append(res.Messages, generateDynamicMessage(md.GetOutputType()))
-			}
-		}
-		return res
-	}
-	return m
 }
 
 // Status set handler which return response with status
@@ -944,64 +918,6 @@ func cast(in interface{}) interface{} {
 	default:
 		return v
 	}
-}
-
-var fk = faker.New()
-
-func generateDynamicMessage(m *desc.MessageDescriptor) map[string]interface{} {
-	const (
-		floatMin  = 0
-		floatMax  = 10000
-		wMin      = 1
-		wMax      = 25
-		repeatMax = 5
-	)
-	message := map[string]interface{}{}
-	for _, f := range m.GetFields() {
-		values := []interface{}{}
-		l := 1
-		if f.IsProto3Optional() {
-			l = rand.Intn(2)
-		}
-		if f.IsRepeated() {
-			l = rand.Intn(repeatMax) + l
-		}
-		for i := 0; i < l; i++ {
-			switch f.GetType() {
-			case descriptorpb.FieldDescriptorProto_TYPE_DOUBLE, descriptorpb.FieldDescriptorProto_TYPE_FLOAT:
-				values = append(values, fk.Float64(1, floatMin, floatMax))
-			case descriptorpb.FieldDescriptorProto_TYPE_INT64, descriptorpb.FieldDescriptorProto_TYPE_FIXED64, descriptorpb.FieldDescriptorProto_TYPE_SFIXED64, descriptorpb.FieldDescriptorProto_TYPE_SINT64:
-				values = append(values, fk.Int64())
-			case descriptorpb.FieldDescriptorProto_TYPE_INT32, descriptorpb.FieldDescriptorProto_TYPE_FIXED32, descriptorpb.FieldDescriptorProto_TYPE_SFIXED32, descriptorpb.FieldDescriptorProto_TYPE_SINT32:
-				values = append(values, fk.Int32())
-			case descriptorpb.FieldDescriptorProto_TYPE_UINT64:
-				values = append(values, fk.UInt64())
-			case descriptorpb.FieldDescriptorProto_TYPE_UINT32:
-				values = append(values, fk.UInt32())
-			case descriptorpb.FieldDescriptorProto_TYPE_BOOL:
-				values = append(values, fk.Bool())
-			case descriptorpb.FieldDescriptorProto_TYPE_STRING:
-				values = append(values, fk.Lorem().Sentence(rand.Intn(wMax-wMin+1)+wMin))
-			case descriptorpb.FieldDescriptorProto_TYPE_GROUP:
-				// Group type is deprecated and not supported in proto3.
-			case descriptorpb.FieldDescriptorProto_TYPE_MESSAGE:
-				values = append(values, generateDynamicMessage(f.GetMessageType()))
-			case descriptorpb.FieldDescriptorProto_TYPE_BYTES:
-				values = append(values, fk.Lorem().Bytes(rand.Intn(wMax-wMin+1)+wMin))
-			case descriptorpb.FieldDescriptorProto_TYPE_ENUM:
-				values = append(values, f.GetEnumType().GetValues()[0].GetNumber())
-			}
-		}
-		n := f.GetJSONName()
-		if f.IsRepeated() {
-			message[n] = values
-		} else {
-			if len(values) > 0 {
-				message[n] = values[0]
-			}
-		}
-	}
-	return message
 }
 
 // copy from google.golang.org/protobuf/reflect/protoregistry
