@@ -46,6 +46,11 @@ const (
 	status_closed
 )
 
+const (
+	HealthCheckService_DEFAULT  = "default"
+	HealthCheckService_FLAPPING = "flapping"
+)
+
 type Message map[string]interface{}
 
 type Request struct {
@@ -441,10 +446,10 @@ func (s *Server) registerServer() {
 	if s.healthCheck {
 		healthSrv := health.NewServer()
 		healthpb.RegisterHealthServer(s.server, healthSrv)
-		healthSrv.SetServingStatus("grpcstub", healthpb.HealthCheckResponse_SERVING)
+		healthSrv.SetServingStatus(HealthCheckService_DEFAULT, healthpb.HealthCheckResponse_SERVING)
 		go func() {
 			status := healthpb.HealthCheckResponse_SERVING
-			healthSrv.SetServingStatus("flipflop", status)
+			healthSrv.SetServingStatus(HealthCheckService_FLAPPING, status)
 			for {
 				switch s.status {
 				case status_start, status_starting:
@@ -453,7 +458,7 @@ func (s *Server) registerServer() {
 					} else {
 						status = healthpb.HealthCheckResponse_SERVING
 					}
-					healthSrv.SetServingStatus("flipflop", status)
+					healthSrv.SetServingStatus(HealthCheckService_FLAPPING, status)
 				}
 				time.Sleep(100 * time.Millisecond)
 			}
