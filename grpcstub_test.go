@@ -794,7 +794,7 @@ func TestHealthCheck(t *testing.T) {
 			})
 			client := healthpb.NewHealthClient(ts.ClientConn())
 			_, err := client.Check(ctx, &healthpb.HealthCheckRequest{
-				Service: "grpcstub",
+				Service: HealthCheckService_DEFAULT,
 			})
 			if err != nil {
 				if !tt.wantErr {
