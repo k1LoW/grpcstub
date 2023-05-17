@@ -26,6 +26,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/health"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
@@ -71,16 +73,17 @@ func NewResponse() *Response {
 }
 
 type Server struct {
-	matchers []*matcher
-	fds      []*desc.FileDescriptor
-	listener net.Listener
-	server   *grpc.Server
-	tlsc     *tls.Config
-	cacert   []byte
-	cc       *grpc.ClientConn
-	requests []*Request
-	t        *testing.T
-	mu       sync.RWMutex
+	matchers    []*matcher
+	fds         []*desc.FileDescriptor
+	listener    net.Listener
+	server      *grpc.Server
+	tlsc        *tls.Config
+	cacert      []byte
+	cc          *grpc.ClientConn
+	requests    []*Request
+	healthCheck bool
+	t           *testing.T
+	mu          sync.RWMutex
 }
 
 type matcher struct {
@@ -109,8 +112,9 @@ func NewServer(t *testing.T, protopath string, opts ...Option) *Server {
 		return nil
 	}
 	s := &Server{
-		fds: fds,
-		t:   t,
+		fds:         fds,
+		t:           t,
+		healthCheck: c.healthCheck,
 	}
 	if c.useTLS {
 		certificate, err := tls.X509KeyPair(c.cert, c.key)
@@ -396,6 +400,7 @@ func (m *matcher) Status(s *status.Status) *matcher {
 func (s *Server) Requests() []*Request {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
+	fmt.Printf("%v\n", s.requests)
 	return s.requests
 }
 
@@ -415,6 +420,11 @@ func (s *Server) registerServer() {
 	}
 	for _, sd := range sds {
 		s.server.RegisterService(sd, nil)
+	}
+	if s.healthCheck {
+		healthSrv := health.NewServer()
+		healthpb.RegisterHealthServer(s.server, healthSrv)
+		healthSrv.SetServingStatus("grpcstub", healthpb.HealthCheckResponse_SERVING)
 	}
 }
 
@@ -477,6 +487,7 @@ func (s *Server) createUnaryHandler(md *desc.MethodDescriptor) func(srv interfac
 		}
 		s.mu.Lock()
 		s.requests = append(s.requests, r)
+		fmt.Printf("s.requests: %v\n", s.requests)
 		s.mu.Unlock()
 
 		var mes proto.Message
@@ -567,6 +578,7 @@ func (s *Server) createServerStreamingHandler(md *desc.MethodDescriptor) func(sr
 		}
 		s.mu.Lock()
 		s.requests = append(s.requests, r)
+		fmt.Printf("s.requests: %v\n", s.requests)
 		s.mu.Unlock()
 		for _, m := range s.matchers {
 			match := true
