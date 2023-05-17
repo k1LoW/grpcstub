@@ -92,7 +92,7 @@ func generateDynamicMessage(gs generators, r *Request, m *desc.MessageDescriptor
 		for i := 0; i < l; i++ {
 			fn, ok := gs.matchFunc(strings.Join(names, fieldSep))
 			if ok {
-				values = append(values, cast(fn(r)))
+				values = append(values, fn(r))
 				continue
 			}
 			switch f.GetType() {

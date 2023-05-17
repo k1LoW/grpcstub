@@ -20,6 +20,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	rpb "google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func TestUnary(t *testing.T) {
@@ -684,16 +685,6 @@ func TestTime(t *testing.T) {
 		wantTime time.Time
 	}{
 		{
-			"Cast time.Time to timestamppb.Timestamp",
-			map[string]interface{}{
-				"message":     "hello",
-				"num":         3,
-				"hello":       []string{"hello", "world"},
-				"create_time": now,
-			},
-			now,
-		},
-		{
 			"empty is 0 of UNIX timestamp",
 			map[string]interface{}{
 				"message": "hello",
@@ -703,22 +694,12 @@ func TestTime(t *testing.T) {
 			time.Unix(0, 0),
 		},
 		{
-			"Cast RFC3339 string to timestamppb.Timestamp",
+			"timestamppb.Timestamp",
 			map[string]interface{}{
 				"message":     "hello",
 				"num":         3,
 				"hello":       []string{"hello", "world"},
-				"create_time": now.Format(time.RFC3339),
-			},
-			now,
-		},
-		{
-			"Cast RFC3339Nano string to timestamppb.Timestamp",
-			map[string]interface{}{
-				"message":     "hello",
-				"num":         3,
-				"hello":       []string{"hello", "world"},
-				"create_time": now.Format(time.RFC3339Nano),
+				"create_time": timestamppb.New(now),
 			},
 			now,
 		},
