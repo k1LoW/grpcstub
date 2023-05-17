@@ -36,6 +36,16 @@ import (
 	"google.golang.org/protobuf/reflect/protoregistry"
 )
 
+type serverStatus int
+
+const (
+	status_unknown serverStatus = iota
+	status_start
+	status_starting
+	status_closing
+	status_closed
+)
+
 type Message map[string]interface{}
 
 type Request struct {
@@ -81,6 +91,7 @@ type Server struct {
 	cc          *grpc.ClientConn
 	requests    []*Request
 	healthCheck bool
+	status      serverStatus
 	t           *testing.T
 	mu          sync.RWMutex
 }
@@ -142,6 +153,10 @@ func NewTLSServer(t *testing.T, proto string, cacert, cert, key []byte, opts ...
 
 // Close shuts down *grpc.Server
 func (s *Server) Close() {
+	s.status = status_closing
+	defer func() {
+		s.status = status_closed
+	}()
 	s.t.Helper()
 	if s.listener == nil {
 		s.t.Error("server is not started yet")
@@ -217,6 +232,10 @@ func (s *Server) ClientConn() *grpc.ClientConn {
 }
 
 func (s *Server) startServer() {
+	s.status = status_starting
+	defer func() {
+		s.status = status_start
+	}()
 	s.t.Helper()
 	reflection.Register(s.server)
 	s.registerServer()
@@ -423,6 +442,22 @@ func (s *Server) registerServer() {
 		healthSrv := health.NewServer()
 		healthpb.RegisterHealthServer(s.server, healthSrv)
 		healthSrv.SetServingStatus("grpcstub", healthpb.HealthCheckResponse_SERVING)
+		go func() {
+			status := healthpb.HealthCheckResponse_SERVING
+			healthSrv.SetServingStatus("flipflop", status)
+			for {
+				switch s.status {
+				case status_start, status_starting:
+					if status == healthpb.HealthCheckResponse_SERVING {
+						status = healthpb.HealthCheckResponse_NOT_SERVING
+					} else {
+						status = healthpb.HealthCheckResponse_SERVING
+					}
+					healthSrv.SetServingStatus("flipflop", status)
+				}
+				time.Sleep(100 * time.Millisecond)
+			}
+		}()
 	}
 }
 
