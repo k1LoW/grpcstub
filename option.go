@@ -13,6 +13,7 @@ type config struct {
 	importPaths       []string
 	useTLS            bool
 	cacert, cert, key []byte
+	healthCheck       bool
 }
 
 type Option func(*config) error
@@ -89,6 +90,14 @@ func UseTLS(cacert, cert, key []byte) Option {
 		c.cacert = cacert
 		c.cert = cert
 		c.key = key
+		return nil
+	}
+}
+
+// EnableHealthCheck enable grpc.health.v1
+func EnableHealthCheck() Option {
+	return func(c *config) error {
+		c.healthCheck = true
 		return nil
 	}
 }

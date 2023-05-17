@@ -16,6 +16,7 @@ import (
 	"github.com/k1LoW/grpcstub/testdata/routeguide"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/metadata"
 	rpb "google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
 	"google.golang.org/grpc/status"
@@ -787,5 +788,42 @@ func TestTLSServer(t *testing.T) {
 		if want := 1; got != want {
 			t.Errorf("got %v\nwant %v", got, want)
 		}
+	}
+}
+
+func TestHealthCheck(t *testing.T) {
+	tests := []struct {
+		enable  bool
+		wantErr bool
+	}{
+		{true, false},
+		{false, true},
+	}
+	ctx := context.Background()
+	for i, tt := range tests {
+		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
+			var ts *Server
+			if tt.enable {
+				ts = NewServer(t, "testdata/*.proto", EnableHealthCheck())
+			} else {
+				ts = NewServer(t, "testdata/*.proto")
+			}
+			t.Cleanup(func() {
+				ts.Close()
+			})
+			client := healthpb.NewHealthClient(ts.ClientConn())
+			_, err := client.Check(ctx, &healthpb.HealthCheckRequest{
+				Service: "grpcstub",
+			})
+			if err != nil {
+				if !tt.wantErr {
+					t.Errorf("got error: %s", err)
+				}
+				return
+			}
+			if tt.wantErr {
+				t.Error("want error")
+			}
+		})
 	}
 }
