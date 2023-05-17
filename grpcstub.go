@@ -34,7 +34,6 @@ import (
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type Message map[string]interface{}
@@ -362,7 +361,7 @@ func (m *matcher) Response(message map[string]interface{}) *matcher {
 		} else {
 			res = prev(r, md)
 		}
-		res.Messages = append(res.Messages, castMessage(message))
+		res.Messages = append(res.Messages, message)
 		return res
 	}
 	return m
@@ -889,44 +888,6 @@ func contains(s []string, e string) bool {
 		}
 	}
 	return false
-}
-
-func castMessage(message map[string]interface{}) map[string]interface{} {
-	casted := map[string]interface{}{}
-	for k, v := range message {
-		casted[k] = cast(v)
-	}
-	return casted
-}
-
-func cast(in interface{}) interface{} {
-	switch v := in.(type) {
-	case time.Time:
-		return timestamppb.New(v)
-	case string:
-		t, err := time.Parse(time.RFC3339Nano, v)
-		if err != nil {
-			t, err = time.Parse(time.RFC3339, v)
-			if err != nil {
-				return v
-			}
-		}
-		return timestamppb.New(t)
-	case []interface{}:
-		casted := []interface{}{}
-		for _, vv := range v {
-			casted = append(casted, cast(vv))
-		}
-		return casted
-	case map[string]interface{}:
-		casted := map[string]interface{}{}
-		for k, vv := range v {
-			casted[k] = cast(vv)
-		}
-		return casted
-	default:
-		return v
-	}
 }
 
 // copy from google.golang.org/protobuf/reflect/protoregistry
