@@ -1,5 +1,8 @@
 # Changelog
 
+## [v0.10.2](https://github.com/k1LoW/grpcstub/compare/v0.10.1...v0.10.2) - 2023-05-17
+- Change health check service name by @k1LoW in https://github.com/k1LoW/grpcstub/pull/45
+
 ## [v0.10.1](https://github.com/k1LoW/grpcstub/compare/v0.10.0...v0.10.1) - 2023-05-17
 - Add `flipflop` service for grpc.health.v1.Health.Watch stubbing by @k1LoW in https://github.com/k1LoW/grpcstub/pull/43
 
