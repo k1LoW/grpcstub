@@ -400,7 +400,6 @@ func (m *matcher) Status(s *status.Status) *matcher {
 func (s *Server) Requests() []*Request {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	fmt.Printf("%v\n", s.requests)
 	return s.requests
 }
 
@@ -487,7 +486,6 @@ func (s *Server) createUnaryHandler(md *desc.MethodDescriptor) func(srv interfac
 		}
 		s.mu.Lock()
 		s.requests = append(s.requests, r)
-		fmt.Printf("s.requests: %v\n", s.requests)
 		s.mu.Unlock()
 
 		var mes proto.Message
@@ -578,7 +576,6 @@ func (s *Server) createServerStreamingHandler(md *desc.MethodDescriptor) func(sr
 		}
 		s.mu.Lock()
 		s.requests = append(s.requests, r)
-		fmt.Printf("s.requests: %v\n", s.requests)
 		s.mu.Unlock()
 		for _, m := range s.matchers {
 			match := true
