@@ -7,7 +7,7 @@ There is an HTTP version stubbing tool with the same design concept, [httpstub](
 ## Usage
 
 ``` go
-package myapp_test
+package myapp
 
 import (
 	"io"
@@ -15,18 +15,18 @@ import (
 	"testing"
 
 	"github.com/k1LoW/grpcstub"
-	"github.com/k1LoW/myapp/proto/gen/go/myapp"
+    "github.com/k1LoW/myapp/protobuf/gen/go/routeguide"
 )
 
 func TestClient(t *testing.T) {
 	ctx := context.Background()
-	ts := grpcstub.NewServer(t, "path/to/*.proto")
+	ts := grpcstub.NewServer(t, "protobuf/proto/*.proto")
 	t.Cleanup(func() {
 		ts.Close()
 	})
 	ts.Method("GetFeature").Response(map[string]interface{}{"name": "hello", "location": map[string]interface{}{"latitude": 10, "longitude": 13}})
 
-	client := myapp.NewRouteGuideClient(ts.Conn())
+	client := routeguide.NewRouteGuideClient(ts.Conn())
 	if _, err := client.GetFeature(ctx, &routeguide.Point{
 		Latitude:  10,
 		Longitude: 13,
@@ -70,7 +70,7 @@ ts := grpcstub.NewServer(t, "path/to/*.proto")
 t.Cleanup(func() {
 	ts.Close()
 })
-ts.Method("GetFeature").ResponseDynamic()
+ts.Service("routeguide.RouteGuide").Method("GetFeature").ResponseDynamic()
 ```
 
 ### Dynamic response with your own generators
@@ -81,12 +81,12 @@ t.Cleanup(func() {
 	ts.Close()
 })
 fk := faker.New()
-want := time.Now()
+want := timestamppb.Now()
 opts := []GeneratorOption{
-	Generator("*_id", func(r *Request) interface{} {
+	Generator("*_id", func(r *grpcstub.Request) any {
 		return fk.UUID().V4()
 	}),
-	Generator("*_time", func(r *Request) interface{} {
+	Generator("*_time", func(r *grpcstub.Request) any {
 		return want
 	}),
 }
