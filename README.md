@@ -7,7 +7,7 @@ There is an HTTP version stubbing tool with the same design concept, [httpstub](
 ## Usage
 
 ``` go
-package myapp
+package myapp_test
 
 import (
 	"io"
