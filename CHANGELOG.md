@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.11.0](https://github.com/k1LoW/grpcstub/compare/v0.10.2...v0.11.0) - 2023-06-07
+### Breaking Changes 🛠
+- Use google.golang.org/protobuf/reflect/protoreflect instead of github.com/jhump/protoreflect by @k1LoW in https://github.com/k1LoW/grpcstub/pull/48
+
 ## [v0.10.2](https://github.com/k1LoW/grpcstub/compare/v0.10.1...v0.10.2) - 2023-05-17
 - Change health check service name by @k1LoW in https://github.com/k1LoW/grpcstub/pull/45
 
