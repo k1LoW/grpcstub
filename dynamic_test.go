@@ -9,7 +9,6 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/k1LoW/grpcstub/testdata/hello"
 	"github.com/k1LoW/grpcstub/testdata/routeguide"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func TestResponseDynamic(t *testing.T) {
@@ -78,7 +77,7 @@ func TestResponseDynamicGenerated(t *testing.T) {
 	want := time.Now()
 	opts := []GeneratorOption{
 		Generator("*_time", func(r *Request) interface{} {
-			return timestamppb.New(want)
+			return want
 		}),
 	}
 	ts.Method("Hello").ResponseDynamic(opts...)
@@ -101,7 +100,7 @@ func TestResponseDynamicServer(t *testing.T) {
 	want := time.Now()
 	opts := []GeneratorOption{
 		Generator("*_time", func(r *Request) interface{} {
-			return timestamppb.New(want)
+			return want
 		}),
 	}
 	ts.ResponseDynamic(opts...)

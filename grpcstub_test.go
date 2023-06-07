@@ -44,6 +44,7 @@ func TestUnary(t *testing.T) {
 		got := res.Name
 		if want := "hello"; got != want {
 			t.Errorf("got %v\nwant %v", got, want)
+			return
 		}
 	}
 	{
@@ -689,7 +690,7 @@ func TestTime(t *testing.T) {
 			map[string]interface{}{
 				"message": "hello",
 				"num":     3,
-				"hello":   []string{"hello", "world"},
+				"hellos":  []string{"hello", "world"},
 			},
 			time.Unix(0, 0),
 		},
@@ -698,8 +699,8 @@ func TestTime(t *testing.T) {
 			map[string]interface{}{
 				"message":     "hello",
 				"num":         3,
-				"hello":       []string{"hello", "world"},
-				"create_time": timestamppb.New(now),
+				"hellos":      []string{"hello", "world"},
+				"create_time": now.Format(time.RFC3339Nano),
 			},
 			now,
 		},
@@ -713,9 +714,14 @@ func TestTime(t *testing.T) {
 			})
 			ts.Method("Hello").Response(tt.res)
 			client := hello.NewGrpcTestServiceClient(ts.Conn())
-			got, err := client.Hello(ctx, &hello.HelloRequest{})
+			got, err := client.Hello(ctx, &hello.HelloRequest{
+				Name:        "alice",
+				Num:         35,
+				RequestTime: timestamppb.New(now),
+			})
 			if err != nil {
 				t.Error(err)
+				return
 			}
 			if got.CreateTime.AsTime().Unix() != tt.wantTime.Unix() {
 				t.Errorf("got %v\nwant %v", got.CreateTime.AsTime(), tt.wantTime)
@@ -755,6 +761,7 @@ func TestTLSServer(t *testing.T) {
 		got := res.Name
 		if want := "hello"; got != want {
 			t.Errorf("got %v\nwant %v", got, want)
+			return
 		}
 	}
 	{

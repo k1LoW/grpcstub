@@ -81,7 +81,7 @@ t.Cleanup(func() {
 	ts.Close()
 })
 fk := faker.New()
-want := timestamppb.Now()
+want := time.Now()
 opts := []GeneratorOption{
 	Generator("*_id", func(r *grpcstub.Request) any {
 		return fk.UUID().V4()
