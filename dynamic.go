@@ -3,11 +3,11 @@ package grpcstub
 import (
 	"math/rand"
 	"strings"
+	"time"
 
 	"github.com/jaswdr/faker"
-	"github.com/jhump/protoreflect/desc"
 	"github.com/minio/pkg/wildcard"
-	"google.golang.org/protobuf/types/descriptorpb"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 var fk = faker.New()
@@ -49,18 +49,18 @@ func (m *matcher) ResponseDynamic(opts ...GeneratorOption) *matcher {
 		gs = opt(gs)
 	}
 	prev := m.handler
-	m.handler = func(r *Request, md *desc.MethodDescriptor) *Response {
+	m.handler = func(r *Request, md protoreflect.MethodDescriptor) *Response {
 		var res *Response
 		if prev == nil {
 			res = NewResponse()
 		} else {
 			res = prev(r, md)
 		}
-		if !md.IsClientStreaming() && !md.IsServerStreaming() {
-			res.Messages = append(res.Messages, generateDynamicMessage(gs, r, md.GetOutputType(), nil))
+		if !md.IsStreamingClient() && !md.IsStreamingServer() {
+			res.Messages = append(res.Messages, generateDynamicMessage(gs, r, md.Output(), nil))
 		} else {
 			for i := 0; i > rand.Intn(messageMax)+1; i++ {
-				res.Messages = append(res.Messages, generateDynamicMessage(gs, r, md.GetOutputType(), nil))
+				res.Messages = append(res.Messages, generateDynamicMessage(gs, r, md.Output(), nil))
 			}
 		}
 		return res
@@ -68,7 +68,7 @@ func (m *matcher) ResponseDynamic(opts ...GeneratorOption) *matcher {
 	return m
 }
 
-func generateDynamicMessage(gs generators, r *Request, m *desc.MessageDescriptor, parents []string) map[string]interface{} {
+func generateDynamicMessage(gs generators, r *Request, m protoreflect.MessageDescriptor, parents []string) map[string]interface{} {
 	const (
 		floatMin  = 0
 		floatMax  = 10000
@@ -78,49 +78,57 @@ func generateDynamicMessage(gs generators, r *Request, m *desc.MessageDescriptor
 		fieldSep  = "."
 	)
 	message := map[string]interface{}{}
-	for _, f := range m.GetFields() {
+
+	for i := 0; i < m.Fields().Len(); i++ {
+		f := m.Fields().Get(i)
 		values := []interface{}{}
 		l := 1
-		if f.IsProto3Optional() {
+		if f.HasOptionalKeyword() {
 			l = rand.Intn(2)
 		}
-		if f.IsRepeated() {
+		if f.IsList() {
 			l = rand.Intn(repeatMax) + l
 		}
-		n := f.GetName()
-		names := append(parents, n)
+		n := string(f.Name())
+		names := append(parents, string(n))
 		for i := 0; i < l; i++ {
 			fn, ok := gs.matchFunc(strings.Join(names, fieldSep))
 			if ok {
 				values = append(values, fn(r))
 				continue
 			}
-			switch f.GetType() {
-			case descriptorpb.FieldDescriptorProto_TYPE_DOUBLE, descriptorpb.FieldDescriptorProto_TYPE_FLOAT:
+			switch f.Kind() {
+			case protoreflect.DoubleKind, protoreflect.FloatKind:
 				values = append(values, fk.Float64(1, floatMin, floatMax))
-			case descriptorpb.FieldDescriptorProto_TYPE_INT64, descriptorpb.FieldDescriptorProto_TYPE_FIXED64, descriptorpb.FieldDescriptorProto_TYPE_SFIXED64, descriptorpb.FieldDescriptorProto_TYPE_SINT64:
+			case protoreflect.Int64Kind, protoreflect.Fixed64Kind, protoreflect.Sfixed64Kind, protoreflect.Sint64Kind:
 				values = append(values, fk.Int64())
-			case descriptorpb.FieldDescriptorProto_TYPE_INT32, descriptorpb.FieldDescriptorProto_TYPE_FIXED32, descriptorpb.FieldDescriptorProto_TYPE_SFIXED32, descriptorpb.FieldDescriptorProto_TYPE_SINT32:
+			case protoreflect.Int32Kind, protoreflect.Fixed32Kind, protoreflect.Sfixed32Kind, protoreflect.Sint32Kind:
 				values = append(values, fk.Int32())
-			case descriptorpb.FieldDescriptorProto_TYPE_UINT64:
+			case protoreflect.Uint64Kind:
 				values = append(values, fk.UInt64())
-			case descriptorpb.FieldDescriptorProto_TYPE_UINT32:
+			case protoreflect.Uint32Kind:
 				values = append(values, fk.UInt32())
-			case descriptorpb.FieldDescriptorProto_TYPE_BOOL:
+			case protoreflect.BoolKind:
 				values = append(values, fk.Bool())
-			case descriptorpb.FieldDescriptorProto_TYPE_STRING:
+			case protoreflect.StringKind:
 				values = append(values, fk.Lorem().Sentence(rand.Intn(wMax-wMin+1)+wMin))
-			case descriptorpb.FieldDescriptorProto_TYPE_GROUP:
+			case protoreflect.GroupKind:
 				// Group type is deprecated and not supported in proto3.
-			case descriptorpb.FieldDescriptorProto_TYPE_MESSAGE:
-				values = append(values, generateDynamicMessage(gs, r, f.GetMessageType(), names))
-			case descriptorpb.FieldDescriptorProto_TYPE_BYTES:
+			case protoreflect.MessageKind:
+				if f.Message().FullName() == "google.protobuf.Timestamp" {
+					// Timestamp is not encoded as a message with seconds and nanos in JSON, instead it is encoded with RFC 3339:
+					// ref: https://protobuf.dev/programming-guides/proto3/#json
+					values = append(values, fk.Time().Time(time.Now()).Format(time.RFC3339Nano))
+					continue
+				}
+				values = append(values, generateDynamicMessage(gs, r, f.Message(), names))
+			case protoreflect.BytesKind:
 				values = append(values, fk.Lorem().Bytes(rand.Intn(wMax-wMin+1)+wMin))
-			case descriptorpb.FieldDescriptorProto_TYPE_ENUM:
-				values = append(values, f.GetEnumType().GetValues()[0].GetNumber())
+			case protoreflect.EnumKind:
+				values = append(values, int(f.Enum().Values().Get(0).Number()))
 			}
 		}
-		if f.IsRepeated() {
+		if f.IsList() {
 			message[n] = values
 		} else {
 			if len(values) > 0 {
@@ -128,6 +136,7 @@ func generateDynamicMessage(gs generators, r *Request, m *desc.MessageDescriptor
 			}
 		}
 	}
+
 	return message
 }
 

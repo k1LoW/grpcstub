@@ -1,7 +1,6 @@
 package grpcstub
 
 import (
-	"bytes"
 	"context"
 	"crypto/tls"
 	"crypto/x509"
@@ -17,11 +16,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/protobuf/jsonpb" //nolint
-	"github.com/golang/protobuf/proto"  //nolint
 	"github.com/jhump/protoreflect/desc"
 	"github.com/jhump/protoreflect/desc/protoparse"
-	"github.com/jhump/protoreflect/dynamic"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
@@ -31,9 +27,12 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
+	"google.golang.org/protobuf/types/descriptorpb"
+	"google.golang.org/protobuf/types/dynamicpb"
 )
 
 type serverStatus int
@@ -60,7 +59,8 @@ type Request struct {
 	Message Message
 }
 
-func newRequest(service, method string, message Message) *Request {
+func newRequest(md protoreflect.MethodDescriptor, message Message) *Request {
+	service, method := splitMethodFullName(md.FullName())
 	return &Request{
 		Service: service,
 		Method:  method,
@@ -88,7 +88,7 @@ func NewResponse() *Response {
 
 type Server struct {
 	matchers    []*matcher
-	fds         []*desc.FileDescriptor
+	fds         *descriptorpb.FileDescriptorSet
 	listener    net.Listener
 	server      *grpc.Server
 	tlsc        *tls.Config
@@ -109,7 +109,7 @@ type matcher struct {
 }
 
 type matchFunc func(r *Request) bool
-type handlerFunc func(r *Request, md *desc.MethodDescriptor) *Response
+type handlerFunc func(r *Request, md protoreflect.MethodDescriptor) *Response
 
 // NewServer returns a new server with registered *grpc.Server
 func NewServer(t *testing.T, protopath string, opts ...Option) *Server {
@@ -339,7 +339,7 @@ func (m *matcher) Methodf(format string, a ...any) *matcher {
 // Header append handler which append header to response.
 func (m *matcher) Header(key, value string) *matcher {
 	prev := m.handler
-	m.handler = func(r *Request, md *desc.MethodDescriptor) *Response {
+	m.handler = func(r *Request, md protoreflect.MethodDescriptor) *Response {
 		var res *Response
 		if prev == nil {
 			res = NewResponse()
@@ -355,7 +355,7 @@ func (m *matcher) Header(key, value string) *matcher {
 // Trailer append handler which append trailer to response.
 func (m *matcher) Trailer(key, value string) *matcher {
 	prev := m.handler
-	m.handler = func(r *Request, md *desc.MethodDescriptor) *Response {
+	m.handler = func(r *Request, md protoreflect.MethodDescriptor) *Response {
 		var res *Response
 		if prev == nil {
 			res = NewResponse()
@@ -370,7 +370,7 @@ func (m *matcher) Trailer(key, value string) *matcher {
 
 // Handler set handler
 func (m *matcher) Handler(fn func(r *Request) *Response) {
-	m.handler = func(r *Request, md *desc.MethodDescriptor) *Response {
+	m.handler = func(r *Request, md protoreflect.MethodDescriptor) *Response {
 		return fn(r)
 	}
 }
@@ -378,7 +378,7 @@ func (m *matcher) Handler(fn func(r *Request) *Response) {
 // Response set handler which return response.
 func (m *matcher) Response(message map[string]interface{}) *matcher {
 	prev := m.handler
-	m.handler = func(r *Request, md *desc.MethodDescriptor) *Response {
+	m.handler = func(r *Request, md protoreflect.MethodDescriptor) *Response {
 		var res *Response
 		if prev == nil {
 			res = NewResponse()
@@ -406,7 +406,7 @@ func (m *matcher) ResponseStringf(format string, a ...any) *matcher {
 // Status set handler which return response with status
 func (m *matcher) Status(s *status.Status) *matcher {
 	prev := m.handler
-	m.handler = func(r *Request, md *desc.MethodDescriptor) *Response {
+	m.handler = func(r *Request, md protoreflect.MethodDescriptor) *Response {
 		var res *Response
 		if prev == nil {
 			res = NewResponse()
@@ -434,14 +434,15 @@ func (m *matcher) Requests() []*Request {
 }
 
 func (s *Server) registerServer() {
-	var sds []*grpc.ServiceDesc
-	for _, fd := range s.fds {
-		for _, sd := range fd.GetServices() {
-			sds = append(sds, s.createServiceDesc(sd))
+	files := protoregistry.GlobalFiles
+	for _, fd := range s.fds.File {
+		d, err := protodesc.NewFile(fd, files)
+		if err != nil {
+			s.t.Error(err)
 		}
-	}
-	for _, sd := range sds {
-		s.server.RegisterService(sd, nil)
+		for i := 0; i < d.Services().Len(); i++ {
+			s.server.RegisterService(s.createServiceDesc(d.Services().Get(i)), nil)
+		}
 	}
 	if s.healthCheck {
 		healthSrv := health.NewServer()
@@ -466,33 +467,38 @@ func (s *Server) registerServer() {
 	}
 }
 
-func (s *Server) createServiceDesc(sd *desc.ServiceDescriptor) *grpc.ServiceDesc {
+func (s *Server) createServiceDesc(sd protoreflect.ServiceDescriptor) *grpc.ServiceDesc {
 	gsd := &grpc.ServiceDesc{
-		ServiceName: sd.GetFullyQualifiedName(),
+		ServiceName: string(sd.FullName()),
 		HandlerType: nil,
-		Metadata:    sd.GetFile().GetName(),
+		Metadata:    sd.ParentFile().Name(),
 	}
 
-	gsd.Methods, gsd.Streams = s.createMethodDescs(sd.GetMethods())
+	mds := []protoreflect.MethodDescriptor{}
+	for i := 0; i < sd.Methods().Len(); i++ {
+		mds = append(mds, sd.Methods().Get(i))
+	}
+
+	gsd.Methods, gsd.Streams = s.createMethodDescs(mds)
 	return gsd
 }
 
-func (s *Server) createMethodDescs(mds []*desc.MethodDescriptor) ([]grpc.MethodDesc, []grpc.StreamDesc) {
+func (s *Server) createMethodDescs(mds []protoreflect.MethodDescriptor) ([]grpc.MethodDesc, []grpc.StreamDesc) {
 	var methods []grpc.MethodDesc
 	var streams []grpc.StreamDesc
 	for _, md := range mds {
-		if !md.IsClientStreaming() && !md.IsServerStreaming() {
+		if !md.IsStreamingClient() && !md.IsStreamingServer() {
 			method := grpc.MethodDesc{
-				MethodName: md.GetName(),
+				MethodName: string(md.Name()),
 				Handler:    s.createUnaryHandler(md),
 			}
 			methods = append(methods, method)
 		} else {
 			stream := grpc.StreamDesc{
-				StreamName:    md.GetName(),
+				StreamName:    string(md.Name()),
 				Handler:       s.createStreamHandler(md),
-				ServerStreams: md.IsServerStreaming(),
-				ClientStreams: md.IsClientStreaming(),
+				ServerStreams: md.IsStreamingServer(),
+				ClientStreams: md.IsStreamingClient(),
 			}
 			streams = append(streams, stream)
 		}
@@ -500,25 +506,22 @@ func (s *Server) createMethodDescs(mds []*desc.MethodDescriptor) ([]grpc.MethodD
 	return methods, streams
 }
 
-func (s *Server) createUnaryHandler(md *desc.MethodDescriptor) func(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func (s *Server) createUnaryHandler(md protoreflect.MethodDescriptor) func(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	return func(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-		msgFactory := dynamic.NewMessageFactoryWithDefaults()
-		in := msgFactory.NewMessage(md.GetInputType())
+		in := dynamicpb.NewMessage(md.Input())
 		if err := dec(in); err != nil {
 			return nil, err
 		}
-		b := new(bytes.Buffer)
-		marshaler := jsonpb.Marshaler{
-			OrigName: true,
-		}
-		if err := marshaler.Marshal(b, in); err != nil {
+		b, err := protojson.MarshalOptions{UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(in)
+		if err != nil {
 			return nil, err
 		}
 		m := Message{}
-		if err := json.Unmarshal(b.Bytes(), &m); err != nil {
+		if err := json.Unmarshal(b, &m); err != nil {
 			return nil, err
 		}
-		r := newRequest(md.GetService().GetFullyQualifiedName(), md.GetName(), m)
+
+		r := newRequest(md, m)
 		h, ok := metadata.FromIncomingContext(ctx)
 		if ok {
 			r.Headers = h
@@ -527,7 +530,7 @@ func (s *Server) createUnaryHandler(md *desc.MethodDescriptor) func(srv interfac
 		s.requests = append(s.requests, r)
 		s.mu.Unlock()
 
-		var mes proto.Message
+		var mes *dynamicpb.Message
 		for _, m := range s.matchers {
 			match := true
 			for _, fn := range m.matchFuncs {
@@ -557,13 +560,13 @@ func (s *Server) createUnaryHandler(md *desc.MethodDescriptor) func(srv interfac
 				if res.Status != nil && res.Status.Err() != nil {
 					return nil, res.Status.Err()
 				}
-				mes = msgFactory.NewMessage(md.GetOutputType())
+				mes = dynamicpb.NewMessage(md.Output())
 				if len(res.Messages) > 0 {
 					b, err := json.Marshal(res.Messages[0])
 					if err != nil {
 						return nil, err
 					}
-					if err := json.Unmarshal(b, mes); err != nil {
+					if err := (protojson.UnmarshalOptions{}).Unmarshal(b, mes); err != nil {
 						return nil, err
 					}
 				}
@@ -575,13 +578,13 @@ func (s *Server) createUnaryHandler(md *desc.MethodDescriptor) func(srv interfac
 	}
 }
 
-func (s *Server) createStreamHandler(md *desc.MethodDescriptor) func(srv interface{}, stream grpc.ServerStream) error {
+func (s *Server) createStreamHandler(md protoreflect.MethodDescriptor) func(srv interface{}, stream grpc.ServerStream) error {
 	switch {
-	case !md.IsClientStreaming() && md.IsServerStreaming():
+	case !md.IsStreamingClient() && md.IsStreamingServer():
 		return s.createServerStreamingHandler(md)
-	case md.IsClientStreaming() && !md.IsServerStreaming():
+	case md.IsStreamingClient() && !md.IsStreamingServer():
 		return s.createClientStreamingHandler(md)
-	case md.IsClientStreaming() && md.IsServerStreaming():
+	case md.IsStreamingClient() && md.IsStreamingServer():
 		return s.createBiStreamingHandler(md)
 	default:
 		return func(srv interface{}, stream grpc.ServerStream) error {
@@ -590,25 +593,21 @@ func (s *Server) createStreamHandler(md *desc.MethodDescriptor) func(srv interfa
 	}
 }
 
-func (s *Server) createServerStreamingHandler(md *desc.MethodDescriptor) func(srv interface{}, stream grpc.ServerStream) error {
+func (s *Server) createServerStreamingHandler(md protoreflect.MethodDescriptor) func(srv interface{}, stream grpc.ServerStream) error {
 	return func(srv interface{}, stream grpc.ServerStream) error {
-		msgFactory := dynamic.NewMessageFactoryWithDefaults()
-		in := msgFactory.NewMessage(md.GetInputType())
+		in := dynamicpb.NewMessage(md.Input())
 		if err := stream.RecvMsg(in); err != nil {
 			return err
 		}
-		b := new(bytes.Buffer)
-		marshaler := jsonpb.Marshaler{
-			OrigName: true,
-		}
-		if err := marshaler.Marshal(b, in); err != nil {
+		b, err := protojson.MarshalOptions{UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(in)
+		if err != nil {
 			return err
 		}
 		m := Message{}
-		if err := json.Unmarshal(b.Bytes(), &m); err != nil {
+		if err := json.Unmarshal(b, &m); err != nil {
 			return err
 		}
-		r := newRequest(md.GetService().GetFullyQualifiedName(), md.GetName(), m)
+		r := newRequest(md, m)
 		h, ok := metadata.FromIncomingContext(stream.Context())
 		if ok {
 			r.Headers = h
@@ -645,12 +644,12 @@ func (s *Server) createServerStreamingHandler(md *desc.MethodDescriptor) func(sr
 				}
 				if len(res.Messages) > 0 {
 					for _, resm := range res.Messages {
-						mes := msgFactory.NewMessage(md.GetOutputType())
+						mes := dynamicpb.NewMessage(md.Output())
 						b, err := json.Marshal(resm)
 						if err != nil {
 							return err
 						}
-						if err := json.Unmarshal(b, mes); err != nil {
+						if err := (protojson.UnmarshalOptions{}).Unmarshal(b, mes); err != nil {
 							return err
 						}
 						if err := stream.SendMsg(mes); err != nil {
@@ -664,26 +663,22 @@ func (s *Server) createServerStreamingHandler(md *desc.MethodDescriptor) func(sr
 	}
 }
 
-func (s *Server) createClientStreamingHandler(md *desc.MethodDescriptor) func(srv interface{}, stream grpc.ServerStream) error {
+func (s *Server) createClientStreamingHandler(md protoreflect.MethodDescriptor) func(srv interface{}, stream grpc.ServerStream) error {
 	return func(srv interface{}, stream grpc.ServerStream) error {
 		rs := []*Request{}
 		for {
-			msgFactory := dynamic.NewMessageFactoryWithDefaults()
-			in := msgFactory.NewMessage(md.GetInputType())
+			in := dynamicpb.NewMessage(md.Input())
 			err := stream.RecvMsg(in)
 			if err == nil {
-				b := new(bytes.Buffer)
-				marshaler := jsonpb.Marshaler{
-					OrigName: true,
-				}
-				if err := marshaler.Marshal(b, in); err != nil {
+				b, err := protojson.MarshalOptions{UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(in)
+				if err != nil {
 					return err
 				}
 				m := Message{}
-				if err := json.Unmarshal(b.Bytes(), &m); err != nil {
+				if err := json.Unmarshal(b, &m); err != nil {
 					return err
 				}
-				r := newRequest(md.GetService().GetFullyQualifiedName(), md.GetName(), m)
+				r := newRequest(md, m)
 				h, ok := metadata.FromIncomingContext(stream.Context())
 				if ok {
 					r.Headers = h
@@ -694,7 +689,7 @@ func (s *Server) createClientStreamingHandler(md *desc.MethodDescriptor) func(sr
 				rs = append(rs, r)
 			}
 			if err == io.EOF {
-				var mes proto.Message
+				var mes *dynamicpb.Message
 				for _, r := range rs {
 					for _, m := range s.matchers {
 						match := true
@@ -711,13 +706,13 @@ func (s *Server) createClientStreamingHandler(md *desc.MethodDescriptor) func(sr
 							if res.Status != nil && res.Status.Err() != nil {
 								return res.Status.Err()
 							}
-							mes = msgFactory.NewMessage(md.GetOutputType())
+							mes = dynamicpb.NewMessage(md.Output())
 							if len(res.Messages) > 0 {
 								b, err := json.Marshal(res.Messages[0])
 								if err != nil {
 									return err
 								}
-								if err := json.Unmarshal(b, mes); err != nil {
+								if err := (protojson.UnmarshalOptions{}).Unmarshal(b, mes); err != nil {
 									return err
 								}
 							}
@@ -743,13 +738,12 @@ func (s *Server) createClientStreamingHandler(md *desc.MethodDescriptor) func(sr
 	}
 }
 
-func (s *Server) createBiStreamingHandler(md *desc.MethodDescriptor) func(srv interface{}, stream grpc.ServerStream) error {
+func (s *Server) createBiStreamingHandler(md protoreflect.MethodDescriptor) func(srv interface{}, stream grpc.ServerStream) error {
 	return func(srv interface{}, stream grpc.ServerStream) error {
 		headerSent := false
 	L:
 		for {
-			msgFactory := dynamic.NewMessageFactoryWithDefaults()
-			in := msgFactory.NewMessage(md.GetInputType())
+			in := dynamicpb.NewMessage(md.Input())
 			err := stream.RecvMsg(in)
 			if err == io.EOF {
 				return nil
@@ -757,18 +751,15 @@ func (s *Server) createBiStreamingHandler(md *desc.MethodDescriptor) func(srv in
 			if err != nil {
 				return err
 			}
-			b := new(bytes.Buffer)
-			marshaler := jsonpb.Marshaler{
-				OrigName: true,
-			}
-			if err := marshaler.Marshal(b, in); err != nil {
+			b, err := protojson.MarshalOptions{UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(in)
+			if err != nil {
 				return err
 			}
 			m := Message{}
-			if err := json.Unmarshal(b.Bytes(), &m); err != nil {
+			if err := json.Unmarshal(b, &m); err != nil {
 				return err
 			}
-			r := newRequest(md.GetService().GetFullyQualifiedName(), md.GetName(), m)
+			r := newRequest(md, m)
 			h, ok := metadata.FromIncomingContext(stream.Context())
 			if ok {
 				r.Headers = h
@@ -808,12 +799,12 @@ func (s *Server) createBiStreamingHandler(md *desc.MethodDescriptor) func(srv in
 					}
 					if len(res.Messages) > 0 {
 						for _, resm := range res.Messages {
-							mes := msgFactory.NewMessage(md.GetOutputType())
+							mes := dynamicpb.NewMessage(md.Output())
 							b, err := json.Marshal(resm)
 							if err != nil {
 								return err
 							}
-							if err := json.Unmarshal(b, mes); err != nil {
+							if err := (protojson.UnmarshalOptions{}).Unmarshal(b, mes); err != nil {
 								return err
 							}
 							if err := stream.SendMsg(mes); err != nil {
@@ -829,7 +820,7 @@ func (s *Server) createBiStreamingHandler(md *desc.MethodDescriptor) func(srv in
 	}
 }
 
-func descriptorFromFiles(importPaths []string, protos ...string) ([]*desc.FileDescriptor, error) {
+func descriptorFromFiles(importPaths []string, protos ...string) (*descriptorpb.FileDescriptorSet, error) {
 	protos, err := protoparse.ResolveFilenames(importPaths, protos...)
 	if err != nil {
 		return nil, err
@@ -848,11 +839,11 @@ func descriptorFromFiles(importPaths []string, protos ...string) ([]*desc.FileDe
 	if err != nil {
 		return nil, err
 	}
-	if err := registerFileDescriptors(fds); err != nil {
+	if err := registerFiles(fds); err != nil {
 		return nil, err
 	}
 
-	return fds, nil
+	return desc.ToFileDescriptorSet(fds...), nil
 }
 
 func resolvePaths(importPaths []string, protos ...string) ([]string, []string, func(filename string) (io.ReadCloser, error), error) {
@@ -893,13 +884,14 @@ func methodMatchFunc(method string) matchFunc {
 	}
 }
 
-func registerFileDescriptors(fds []*desc.FileDescriptor) (err error) {
-	var registry *protoregistry.Files
-	registry, err = protodesc.NewFiles(desc.ToFileDescriptorSet(fds...))
+func registerFiles(fds []*desc.FileDescriptor) (err error) {
+	var rf *protoregistry.Files
+	rf, err = protodesc.NewFiles(desc.ToFileDescriptorSet(fds...))
 	if err != nil {
 		return err
 	}
-	registry.RangeFiles(func(fd protoreflect.FileDescriptor) bool {
+
+	rf.RangeFiles(func(fd protoreflect.FileDescriptor) bool {
 		if _, err := protoregistry.GlobalFiles.FindFileByPath(fd.Path()); !errors.Is(protoregistry.NotFound, err) {
 			return true
 		}
@@ -918,7 +910,8 @@ func registerFileDescriptors(fds []*desc.FileDescriptor) (err error) {
 		err = protoregistry.GlobalFiles.RegisterFile(fd)
 		return (err == nil)
 	})
-	return
+
+	return err
 }
 
 func contains(s []string, e string) bool {
@@ -952,4 +945,11 @@ func rangeTopLevelDescriptors(fd protoreflect.FileDescriptor, f func(protoreflec
 	for i := sds.Len() - 1; i >= 0; i-- {
 		f(sds.Get(i))
 	}
+}
+
+func splitMethodFullName(mn protoreflect.FullName) (string, string) {
+	splitted := strings.Split(string(mn), ".")
+	service := strings.Join(splitted[:len(splitted)-1], ".")
+	method := splitted[len(splitted)-1]
+	return service, method
 }
