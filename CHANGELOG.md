@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.11.1](https://github.com/k1LoW/grpcstub/compare/v0.11.0...v0.11.1) - 2023-06-08
+### Other Changes
+- Add DisableReflection option by @k1LoW in https://github.com/k1LoW/grpcstub/pull/49
+
 ## [v0.11.0](https://github.com/k1LoW/grpcstub/compare/v0.10.2...v0.11.0) - 2023-06-07
 ### Breaking Changes 🛠
 - Use google.golang.org/protobuf/reflect/protoreflect instead of github.com/jhump/protoreflect by @k1LoW in https://github.com/k1LoW/grpcstub/pull/48
