@@ -14,6 +14,7 @@ type config struct {
 	useTLS            bool
 	cacert, cert, key []byte
 	healthCheck       bool
+	disableReflection bool
 }
 
 type Option func(*config) error
@@ -98,6 +99,14 @@ func UseTLS(cacert, cert, key []byte) Option {
 func EnableHealthCheck() Option {
 	return func(c *config) error {
 		c.healthCheck = true
+		return nil
+	}
+}
+
+// DisableReflection disable Server Reflection Protocol
+func DisableReflection() Option {
+	return func(c *config) error {
+		c.disableReflection = true
 		return nil
 	}
 }

@@ -87,18 +87,19 @@ func NewResponse() *Response {
 }
 
 type Server struct {
-	matchers    []*matcher
-	fds         *descriptorpb.FileDescriptorSet
-	listener    net.Listener
-	server      *grpc.Server
-	tlsc        *tls.Config
-	cacert      []byte
-	cc          *grpc.ClientConn
-	requests    []*Request
-	healthCheck bool
-	status      serverStatus
-	t           *testing.T
-	mu          sync.RWMutex
+	matchers          []*matcher
+	fds               *descriptorpb.FileDescriptorSet
+	listener          net.Listener
+	server            *grpc.Server
+	tlsc              *tls.Config
+	cacert            []byte
+	cc                *grpc.ClientConn
+	requests          []*Request
+	healthCheck       bool
+	disableReflection bool
+	status            serverStatus
+	t                 *testing.T
+	mu                sync.RWMutex
 }
 
 type matcher struct {
@@ -127,9 +128,10 @@ func NewServer(t *testing.T, protopath string, opts ...Option) *Server {
 		return nil
 	}
 	s := &Server{
-		fds:         fds,
-		t:           t,
-		healthCheck: c.healthCheck,
+		fds:               fds,
+		t:                 t,
+		healthCheck:       c.healthCheck,
+		disableReflection: c.disableReflection,
 	}
 	if c.useTLS {
 		certificate, err := tls.X509KeyPair(c.cert, c.key)
@@ -242,7 +244,9 @@ func (s *Server) startServer() {
 		s.status = status_start
 	}()
 	s.t.Helper()
-	reflection.Register(s.server)
+	if !s.disableReflection {
+		reflection.Register(s.server)
+	}
 	s.registerServer()
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
