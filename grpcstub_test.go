@@ -815,3 +815,40 @@ func TestHealthCheck(t *testing.T) {
 		})
 	}
 }
+
+func TestReflection(t *testing.T) {
+	tests := []struct {
+		disableReflection bool
+		wantErr           bool
+	}{
+		{false, false},
+		{true, true},
+	}
+	proto := "testdata/route_guide.proto"
+	ctx := context.Background()
+	for i, tt := range tests {
+		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
+			opts := []Option{}
+			if tt.disableReflection {
+				opts = append(opts, DisableReflection())
+			}
+			ts := NewServer(t, proto, opts...)
+			t.Cleanup(func() {
+				ts.Close()
+			})
+
+			stub := rpb.NewServerReflectionClient(ts.Conn())
+			client := grpcreflect.NewClient(ctx, stub)
+			_, err := client.ListServices()
+			if err != nil {
+				if !tt.wantErr {
+					t.Errorf("got error: %v", err)
+				}
+				return
+			}
+			if tt.wantErr {
+				t.Error("want error")
+			}
+		})
+	}
+}
