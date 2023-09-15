@@ -920,12 +920,3 @@ func splitMethodFullName(mn protoreflect.FullName) (string, string) {
 	method := splitted[len(splitted)-1]
 	return service, method
 }
-
-func contains(s []string, e string) bool {
-	for _, v := range s {
-		if e == v {
-			return true
-		}
-	}
-	return false
-}
