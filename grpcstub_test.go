@@ -11,14 +11,13 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/jhump/protoreflect/grpcreflect"
+	"github.com/jhump/protoreflect/v2/grpcreflect"
 	"github.com/k1LoW/grpcstub/testdata/hello"
 	"github.com/k1LoW/grpcstub/testdata/routeguide"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/metadata"
-	rpb "google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -655,22 +654,24 @@ func TestLoadProto(t *testing.T) {
 			t.Cleanup(func() {
 				ts.Close()
 			})
-
-			stub := rpb.NewServerReflectionClient(ts.Conn())
-			client := grpcreflect.NewClient(ctx, stub)
+			cc := ts.ClientConn()
+			client := grpcreflect.NewClientAuto(ctx, cc)
 			svcs, err := client.ListServices()
 			if err != nil {
 				t.Fatal(err)
 			}
+			resolver := client.AsResolver()
 			for _, svc := range svcs {
-				sd, err := client.ResolveService(svc)
+				sd, err := resolver.FindServiceByName(svc)
 				if err != nil {
 					t.Fatal(err)
 				}
-				mds := sd.GetMethods()
-				for _, md := range mds {
-					if sd.FindMethodByName(md.GetName()) == nil {
-						t.Errorf("method not found: %s", md.GetFullyQualifiedName())
+				mds := sd.Methods()
+				for i := 0; i < mds.Len(); i++ {
+					md := mds.Get(i)
+					_, err := resolver.FindMethodByName(md.FullName())
+					if err != nil {
+						t.Errorf("method not found: %s", md.FullName())
 					}
 				}
 			}
@@ -836,9 +837,8 @@ func TestReflection(t *testing.T) {
 			t.Cleanup(func() {
 				ts.Close()
 			})
-
-			stub := rpb.NewServerReflectionClient(ts.Conn())
-			client := grpcreflect.NewClient(ctx, stub)
+			cc := ts.ClientConn()
+			client := grpcreflect.NewClientAuto(ctx, cc)
 			_, err := client.ListServices()
 			if err != nil {
 				if !tt.wantErr {
