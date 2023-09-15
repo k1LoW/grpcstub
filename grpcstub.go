@@ -9,15 +9,14 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 
-	"github.com/jhump/protoreflect/desc"
-	"github.com/jhump/protoreflect/desc/protoparse"
+	"github.com/bufbuild/protocompile"
+	"github.com/bufbuild/protocompile/linker"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
@@ -28,10 +27,8 @@ import (
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
-	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
-	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/dynamicpb"
 )
 
@@ -88,7 +85,7 @@ func NewResponse() *Response {
 
 type Server struct {
 	matchers          []*matcher
-	fds               *descriptorpb.FileDescriptorSet
+	fds               linker.Files
 	listener          net.Listener
 	server            *grpc.Server
 	tlsc              *tls.Config
@@ -115,6 +112,7 @@ type handlerFunc func(r *Request, md protoreflect.MethodDescriptor) *Response
 // NewServer returns a new server with registered *grpc.Server
 func NewServer(t *testing.T, protopath string, opts ...Option) *Server {
 	t.Helper()
+	ctx := context.Background()
 	c := &config{}
 	opts = append(opts, Proto(protopath))
 	for _, opt := range opts {
@@ -122,16 +120,13 @@ func NewServer(t *testing.T, protopath string, opts ...Option) *Server {
 			t.Fatal(err)
 		}
 	}
-	fds, err := descriptorFromFiles(c.importPaths, c.protos...)
-	if err != nil {
-		t.Error(err)
-		return nil
-	}
 	s := &Server{
-		fds:               fds,
 		t:                 t,
 		healthCheck:       c.healthCheck,
 		disableReflection: c.disableReflection,
+	}
+	if err := s.resolveProtos(ctx, c.importPaths, c.protos); err != nil {
+		t.Fatal(err)
 	}
 	if c.useTLS {
 		certificate, err := tls.X509KeyPair(c.cert, c.key)
@@ -438,14 +433,9 @@ func (m *matcher) Requests() []*Request {
 }
 
 func (s *Server) registerServer() {
-	files := protoregistry.GlobalFiles
-	for _, fd := range s.fds.File {
-		d, err := protodesc.NewFile(fd, files)
-		if err != nil {
-			s.t.Error(err)
-		}
-		for i := 0; i < d.Services().Len(); i++ {
-			s.server.RegisterService(s.createServiceDesc(d.Services().Get(i)), nil)
+	for _, fd := range s.fds {
+		for i := 0; i < fd.Services().Len(); i++ {
+			s.server.RegisterService(s.createServiceDesc(fd.Services().Get(i)), nil)
 		}
 	}
 	if s.healthCheck {
@@ -824,52 +814,6 @@ func (s *Server) createBiStreamingHandler(md protoreflect.MethodDescriptor) func
 	}
 }
 
-func descriptorFromFiles(importPaths []string, protos ...string) (*descriptorpb.FileDescriptorSet, error) {
-	protos, err := protoparse.ResolveFilenames(importPaths, protos...)
-	if err != nil {
-		return nil, err
-	}
-	importPaths, protos, accessor, err := resolvePaths(importPaths, protos...)
-	if err != nil {
-		return nil, err
-	}
-	p := protoparse.Parser{
-		ImportPaths:           importPaths,
-		InferImportPaths:      len(importPaths) == 0,
-		IncludeSourceCodeInfo: true,
-		Accessor:              accessor,
-	}
-	fds, err := p.ParseFiles(protos...)
-	if err != nil {
-		return nil, err
-	}
-	if err := registerFiles(fds); err != nil {
-		return nil, err
-	}
-
-	return desc.ToFileDescriptorSet(fds...), nil
-}
-
-func resolvePaths(importPaths []string, protos ...string) ([]string, []string, func(filename string) (io.ReadCloser, error), error) {
-	resolvedIPaths := importPaths
-	resolvedProtos := []string{}
-	for _, p := range protos {
-		d, b := filepath.Split(p)
-		resolvedIPaths = append(resolvedIPaths, d)
-		resolvedProtos = append(resolvedProtos, b)
-	}
-	resolvedIPaths = unique(resolvedIPaths)
-	resolvedProtos = unique(resolvedProtos)
-	opened := []string{}
-	return resolvedIPaths, resolvedProtos, func(filename string) (io.ReadCloser, error) {
-		if contains(opened, filename) { // FIXME: Need to resolvePaths well without this condition
-			return io.NopCloser(strings.NewReader("")), nil
-		}
-		opened = append(opened, filename)
-		return os.Open(filename)
-	}, nil
-}
-
 func serviceMatchFunc(service string) matchFunc {
 	return func(r *Request) bool {
 		return r.Service == strings.TrimPrefix(service, "/")
@@ -888,18 +832,33 @@ func methodMatchFunc(method string) matchFunc {
 	}
 }
 
-func registerFiles(fds []*desc.FileDescriptor) (err error) {
-	var rf *protoregistry.Files
-	rf, err = protodesc.NewFiles(desc.ToFileDescriptorSet(fds...))
+func (s *Server) resolveProtos(ctx context.Context, importPaths, protos []string) error {
+	importPaths, protos, err := resolvePaths(importPaths, protos...)
 	if err != nil {
 		return err
 	}
+	comp := protocompile.Compiler{
+		Resolver: protocompile.WithStandardImports(&protocompile.SourceResolver{
+			ImportPaths: importPaths,
+		}),
+	}
+	fds, err := comp.Compile(ctx, protos...)
+	if err != nil {
+		return err
+	}
+	if err := registerFiles(fds); err != nil {
+		return err
+	}
+	s.fds = fds
+	return nil
+}
 
-	rf.RangeFiles(func(fd protoreflect.FileDescriptor) bool {
+func registerFiles(fds linker.Files) (err error) {
+	for _, fd := range fds {
+		// Skip registration of already registered descriptors
 		if _, err := protoregistry.GlobalFiles.FindFileByPath(fd.Path()); !errors.Is(protoregistry.NotFound, err) {
-			return true
+			continue
 		}
-
 		// Skip registration of conflicted descriptors
 		conflict := false
 		rangeTopLevelDescriptors(fd, func(d protoreflect.Descriptor) {
@@ -908,23 +867,14 @@ func registerFiles(fds []*desc.FileDescriptor) (err error) {
 			}
 		})
 		if conflict {
-			return true
+			continue
 		}
 
-		err = protoregistry.GlobalFiles.RegisterFile(fd)
-		return (err == nil)
-	})
-
-	return err
-}
-
-func contains(s []string, e string) bool {
-	for _, v := range s {
-		if e == v {
-			return true
+		if err := protoregistry.GlobalFiles.RegisterFile(fd); err != nil {
+			return err
 		}
 	}
-	return false
+	return nil
 }
 
 // copy from google.golang.org/protobuf/reflect/protoregistry
@@ -949,6 +899,19 @@ func rangeTopLevelDescriptors(fd protoreflect.FileDescriptor, f func(protoreflec
 	for i := sds.Len() - 1; i >= 0; i-- {
 		f(sds.Get(i))
 	}
+}
+
+func resolvePaths(importPaths []string, protos ...string) ([]string, []string, error) {
+	resolvedIPaths := importPaths
+	resolvedProtos := []string{}
+	for _, p := range protos {
+		d, b := filepath.Split(p)
+		resolvedIPaths = append(resolvedIPaths, d)
+		resolvedProtos = append(resolvedProtos, b)
+	}
+	resolvedIPaths = unique(resolvedIPaths)
+	resolvedProtos = unique(resolvedProtos)
+	return resolvedIPaths, resolvedProtos, nil
 }
 
 func splitMethodFullName(mn protoreflect.FullName) (string, string) {
