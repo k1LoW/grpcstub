@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.12.0](https://github.com/k1LoW/grpcstub/compare/v0.11.1...v0.12.0) - 2023-09-15
+### Breaking Changes 🛠
+- Use github.com/bufbuild/protocompile instead of github.com/jhump/protoreflect by @k1LoW in https://github.com/k1LoW/grpcstub/pull/51
+
 ## [v0.11.1](https://github.com/k1LoW/grpcstub/compare/v0.11.0...v0.11.1) - 2023-06-08
 ### Other Changes
 - Add DisableReflection option by @k1LoW in https://github.com/k1LoW/grpcstub/pull/49
