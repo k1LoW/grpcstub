@@ -915,6 +915,7 @@ func resolvePaths(importPaths []string, protos ...string) ([]string, []string, e
 		}
 		resolvedIPaths = append(resolvedIPaths, abs)
 	}
+	resolvedIPaths = unique(resolvedIPaths)
 	resolvedProtos := []string{}
 	for _, p := range protos {
 		abs, err := filepath.Abs(p)
@@ -927,7 +928,6 @@ func resolvePaths(importPaths []string, protos ...string) ([]string, []string, e
 			}
 		}
 	}
-	resolvedIPaths = unique(resolvedIPaths)
 	resolvedProtos = unique(resolvedProtos)
 	return resolvedIPaths, resolvedProtos, nil
 }
