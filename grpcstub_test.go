@@ -100,7 +100,7 @@ func TestServerStreaming(t *testing.T) {
 			break
 		}
 		if err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
 		switch c {
 		case 0:

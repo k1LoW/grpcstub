@@ -902,12 +902,30 @@ func rangeTopLevelDescriptors(fd protoreflect.FileDescriptor, f func(protoreflec
 }
 
 func resolvePaths(importPaths []string, protos ...string) ([]string, []string, error) {
-	resolvedIPaths := importPaths
+	if len(importPaths) == 0 {
+		return importPaths, protos, nil
+	}
+	const sep = string(filepath.Separator)
+	importPaths = unique(importPaths)
+	var resolvedIPaths []string
+	for _, p := range importPaths {
+		abs, err := filepath.Abs(p)
+		if err != nil {
+			return nil, nil, err
+		}
+		resolvedIPaths = append(resolvedIPaths, abs)
+	}
 	resolvedProtos := []string{}
 	for _, p := range protos {
-		d, b := filepath.Split(p)
-		resolvedIPaths = append(resolvedIPaths, d)
-		resolvedProtos = append(resolvedProtos, b)
+		abs, err := filepath.Abs(p)
+		if err != nil {
+			return nil, nil, err
+		}
+		for _, ip := range resolvedIPaths {
+			if strings.HasPrefix(abs, ip+sep) {
+				resolvedProtos = append(resolvedProtos, strings.TrimPrefix(abs, ip+sep))
+			}
+		}
 	}
 	resolvedIPaths = unique(resolvedIPaths)
 	resolvedProtos = unique(resolvedProtos)
