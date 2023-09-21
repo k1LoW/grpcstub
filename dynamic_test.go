@@ -61,7 +61,7 @@ func TestResponseDynamicRepeated(t *testing.T) {
 	client := hello.NewGrpcTestServiceClient(ts.Conn())
 	res, err := client.Hello(ctx, &hello.HelloRequest{})
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	if len(res.Hellos) == 0 {
 		t.Error("invalid repeated field value")
@@ -84,7 +84,7 @@ func TestResponseDynamicGenerated(t *testing.T) {
 	client := hello.NewGrpcTestServiceClient(ts.Conn())
 	res, err := client.Hello(ctx, &hello.HelloRequest{})
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	if res.CreateTime.AsTime().UnixNano() != want.UnixNano() {
 		t.Errorf("got %v\nwant %v", res.CreateTime.AsTime().UnixNano(), want.UnixNano())
@@ -107,7 +107,7 @@ func TestResponseDynamicServer(t *testing.T) {
 	client := hello.NewGrpcTestServiceClient(ts.Conn())
 	res, err := client.Hello(ctx, &hello.HelloRequest{})
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	if res.CreateTime.AsTime().UnixNano() != want.UnixNano() {
 		t.Errorf("got %v\nwant %v", res.CreateTime.AsTime().UnixNano(), want.UnixNano())
