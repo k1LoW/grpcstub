@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.13.0](https://github.com/k1LoW/grpcstub/compare/v0.12.0...v0.13.0) - 2023-09-21
+### Breaking Changes 🛠
+- Fix resolvePaths() to handle relative paths correctly by @k1LoW in https://github.com/k1LoW/grpcstub/pull/53
+
 ## [v0.12.0](https://github.com/k1LoW/grpcstub/compare/v0.11.1...v0.12.0) - 2023-09-15
 ### Breaking Changes 🛠
 - Use github.com/bufbuild/protocompile instead of github.com/jhump/protoreflect by @k1LoW in https://github.com/k1LoW/grpcstub/pull/51
