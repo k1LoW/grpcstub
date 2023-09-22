@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.14.0](https://github.com/k1LoW/grpcstub/compare/v0.13.0...v0.14.0) - 2023-09-22
+### Breaking Changes 🛠
+- Requests() returns matched requests only and UnmatchedRequests() returns unmatched requests by @k1LoW in https://github.com/k1LoW/grpcstub/pull/56
+### New Features 🎉
+- Add Stringer for Request type by @k1LoW in https://github.com/k1LoW/grpcstub/pull/57
+
 ## [v0.13.0](https://github.com/k1LoW/grpcstub/compare/v0.12.0...v0.13.0) - 2023-09-21
 ### Breaking Changes 🛠
 - Fix resolvePaths() to handle relative paths correctly by @k1LoW in https://github.com/k1LoW/grpcstub/pull/53
