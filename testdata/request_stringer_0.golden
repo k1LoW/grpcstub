@@ -1,0 +1,7 @@
+helloworld.Greeter/SayHello
+baz: qux
+foo: bar, barbar
+
+{
+  "name": "alice"
+}
