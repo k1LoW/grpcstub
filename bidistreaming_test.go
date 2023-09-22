@@ -94,3 +94,43 @@ func TestBidiStreaming(t *testing.T) {
 		}
 	}
 }
+
+func TestBidiStreamingUnmatched(t *testing.T) {
+	ctx := context.Background()
+	ts := NewServer(t, "testdata/route_guide.proto")
+	t.Cleanup(func() {
+		ts.Close()
+	})
+	ts.Method("RouteChat").Match(func(r *Request) bool {
+		return false
+	}).Header("hello", "header").
+		Response(map[string]any{"location": nil, "message": "hello from server[0]"})
+
+	client := routeguide.NewRouteGuideClient(ts.Conn())
+	stream, err := client.RouteChat(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := stream.SendMsg(&routeguide.RouteNote{
+		Message: fmt.Sprintf("hello from client[%d]", 0),
+	}); err != nil {
+		t.Error("want error")
+	}
+	if _, err := stream.Recv(); err == nil {
+		t.Error("want error")
+	}
+
+	{
+		got := len(ts.Requests())
+		if want := 0; got != want {
+			t.Errorf("got %v\nwant %v", got, want)
+		}
+	}
+
+	{
+		got := len(ts.UnmatchedRequests())
+		if want := 1; got != want {
+			t.Errorf("got %v\nwant %v", got, want)
+		}
+	}
+}

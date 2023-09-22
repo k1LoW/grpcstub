@@ -65,3 +65,53 @@ func TestServerStreaming(t *testing.T) {
 		}
 	}
 }
+
+func TestServerStreamingUnmatched(t *testing.T) {
+	ctx := context.Background()
+	ts := NewServer(t, "testdata/route_guide.proto")
+	t.Cleanup(func() {
+		ts.Close()
+	})
+	ts.Method("ListFeatures").Match(func(r *Request) bool {
+		return false
+	}).Response(map[string]any{"name": "hello"}).Response(map[string]any{"name": "world"})
+
+	client := routeguide.NewRouteGuideClient(ts.Conn())
+	stream, err := client.ListFeatures(ctx, &routeguide.Rectangle{
+		Lo: &routeguide.Point{
+			Latitude:  int32(10),
+			Longitude: int32(2),
+		},
+		Hi: &routeguide.Point{
+			Latitude:  int32(20),
+			Longitude: int32(7),
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for {
+		_, err := stream.Recv()
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		if err == nil {
+			t.Error("want error")
+		}
+		break
+	}
+
+	{
+		got := len(ts.Requests())
+		if want := 0; got != want {
+			t.Errorf("got %v\nwant %v", got, want)
+		}
+	}
+	{
+		got := len(ts.UnmatchedRequests())
+		if want := 1; got != want {
+			t.Errorf("got %v\nwant %v", got, want)
+		}
+	}
+}

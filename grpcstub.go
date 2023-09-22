@@ -426,6 +426,13 @@ func (s *Server) Requests() []*Request {
 	return s.requests
 }
 
+// UnmatchedRequests returns []*grpcstub.Request received but not matched by router.
+func (s *Server) UnmatchedRequests() []*Request {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.unmatchedRequests
+}
+
 // Requests returns []*grpcstub.Request received by matcher.
 func (m *matcher) Requests() []*Request {
 	m.mu.RLock()
@@ -522,15 +529,15 @@ func (s *Server) createUnaryHandler(md protoreflect.MethodDescriptor) func(srv a
 		if ok {
 			r.Headers = h
 		}
-		s.mu.Lock()
-		s.requests = append(s.requests, r)
-		s.mu.Unlock()
 
 		var mes *dynamicpb.Message
 		for _, m := range s.matchers {
 			if !m.matchRequest(r) {
 				continue
 			}
+			s.mu.Lock()
+			s.requests = append(s.requests, r)
+			s.mu.Unlock()
 			m.mu.Lock()
 			m.requests = append(m.requests, r)
 			m.mu.Unlock()
@@ -606,9 +613,6 @@ func (s *Server) createServerStreamingHandler(md protoreflect.MethodDescriptor) 
 		if ok {
 			r.Headers = h
 		}
-		s.mu.Lock()
-		s.requests = append(s.requests, r)
-		s.mu.Unlock()
 		for _, m := range s.matchers {
 			if !m.matchRequest(r) {
 				continue
@@ -616,6 +620,9 @@ func (s *Server) createServerStreamingHandler(md protoreflect.MethodDescriptor) 
 			m.mu.Lock()
 			m.requests = append(m.requests, r)
 			m.mu.Unlock()
+			s.mu.Lock()
+			s.requests = append(s.requests, r)
+			s.mu.Unlock()
 			res := m.handler(r, md)
 			for k, v := range res.Headers {
 				for _, vv := range v {
@@ -676,14 +683,14 @@ func (s *Server) createClientStreamingHandler(md protoreflect.MethodDescriptor) 
 				if ok {
 					r.Headers = h
 				}
-				s.mu.Lock()
-				s.requests = append(s.requests, r)
-				s.mu.Unlock()
 				rs = append(rs, r)
 				continue
 			}
 
 			if err != io.EOF {
+				s.mu.Lock()
+				s.unmatchedRequests = append(s.unmatchedRequests, rs...)
+				s.mu.Unlock()
 				return err
 			}
 
@@ -692,6 +699,9 @@ func (s *Server) createClientStreamingHandler(md protoreflect.MethodDescriptor) 
 				if !m.matchRequest(rs...) {
 					continue
 				}
+				s.mu.Lock()
+				s.requests = append(s.requests, rs...)
+				s.mu.Unlock()
 				m.mu.Lock()
 				m.requests = append(m.requests, rs...)
 				m.mu.Unlock()
@@ -758,13 +768,13 @@ func (s *Server) createBidiStreamingHandler(md protoreflect.MethodDescriptor) fu
 			if ok {
 				r.Headers = h
 			}
-			s.mu.Lock()
-			s.requests = append(s.requests, r)
-			s.mu.Unlock()
 			for _, m := range s.matchers {
 				if !m.matchRequest(r) {
 					continue
 				}
+				s.mu.Lock()
+				s.requests = append(s.requests, r)
+				s.mu.Unlock()
 				m.mu.Lock()
 				m.requests = append(m.requests, r)
 				m.mu.Unlock()

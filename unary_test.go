@@ -54,3 +54,36 @@ func TestUnary(t *testing.T) {
 		}
 	}
 }
+
+func TestUnaryUnmatched(t *testing.T) {
+	ctx := context.Background()
+	ts := NewServer(t, "testdata/route_guide.proto")
+	t.Cleanup(func() {
+		ts.Close()
+	})
+	ts.Method("GetFeature").Match(func(r *Request) bool {
+		return false
+	}).Response(map[string]any{"name": "hello", "location": map[string]any{"latitude": 10, "longitude": 13}})
+
+	client := routeguide.NewRouteGuideClient(ts.Conn())
+	_, err := client.GetFeature(ctx, &routeguide.Point{
+		Latitude:  10,
+		Longitude: 13,
+	})
+	if err == nil {
+		t.Error("want error")
+	}
+
+	{
+		got := len(ts.Requests())
+		if want := 0; got != want {
+			t.Errorf("got %v\nwant %v", got, want)
+		}
+	}
+	{
+		got := len(ts.UnmatchedRequests())
+		if want := 1; got != want {
+			t.Errorf("got %v\nwant %v", got, want)
+		}
+	}
+}
