@@ -91,15 +91,8 @@ func TestServerStreamingUnmatched(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for {
-		_, err := stream.Recv()
-		if errors.Is(err, io.EOF) {
-			break
-		}
-		if err == nil {
-			t.Error("want error")
-		}
-		break
+	if _, err := stream.Recv(); err == nil || errors.Is(err, io.EOF) {
+		t.Error("want error")
 	}
 
 	{
