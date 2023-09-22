@@ -24,7 +24,7 @@ func TestClient(t *testing.T) {
 	t.Cleanup(func() {
 		ts.Close()
 	})
-	ts.Method("GetFeature").Response(map[string]interface{}{"name": "hello", "location": map[string]interface{}{"latitude": 10, "longitude": 13}})
+	ts.Method("GetFeature").Response(map[string]any{"name": "hello", "location": map[string]any{"latitude": 10, "longitude": 13}})
 
 	client := routeguide.NewRouteGuideClient(ts.Conn())
 	if _, err := client.GetFeature(ctx, &routeguide.Point{

@@ -76,7 +76,7 @@ func TestResponseDynamicGenerated(t *testing.T) {
 	})
 	want := time.Now()
 	opts := []GeneratorOption{
-		Generator("*_time", func(r *Request) interface{} {
+		Generator("*_time", func(r *Request) any {
 			return want
 		}),
 	}
@@ -99,7 +99,7 @@ func TestResponseDynamicServer(t *testing.T) {
 	})
 	want := time.Now()
 	opts := []GeneratorOption{
-		Generator("*_time", func(r *Request) interface{} {
+		Generator("*_time", func(r *Request) any {
 			return want
 		}),
 	}

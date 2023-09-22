@@ -30,7 +30,7 @@ func (gs generators) matchFunc(name string) (GenerateFunc, bool) {
 
 type GeneratorOption func(generators) generators
 
-type GenerateFunc func(r *Request) interface{}
+type GenerateFunc func(r *Request) any
 
 func Generator(pattern string, fn GenerateFunc) GeneratorOption {
 	return func(gs generators) generators {
@@ -68,7 +68,7 @@ func (m *matcher) ResponseDynamic(opts ...GeneratorOption) *matcher {
 	return m
 }
 
-func generateDynamicMessage(gs generators, r *Request, m protoreflect.MessageDescriptor, parents []string) map[string]interface{} {
+func generateDynamicMessage(gs generators, r *Request, m protoreflect.MessageDescriptor, parents []string) map[string]any {
 	const (
 		floatMin  = 0
 		floatMax  = 10000
@@ -77,11 +77,11 @@ func generateDynamicMessage(gs generators, r *Request, m protoreflect.MessageDes
 		repeatMax = 5
 		fieldSep  = "."
 	)
-	message := map[string]interface{}{}
+	message := map[string]any{}
 
 	for i := 0; i < m.Fields().Len(); i++ {
 		f := m.Fields().Get(i)
-		values := []interface{}{}
+		values := []any{}
 		l := 1
 		if f.HasOptionalKeyword() {
 			l = rand.Intn(2)

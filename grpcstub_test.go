@@ -28,8 +28,8 @@ func TestUnary(t *testing.T) {
 	t.Cleanup(func() {
 		ts.Close()
 	})
-	ts.Method("GetFeature").Response(map[string]interface{}{"name": "hello", "location": map[string]interface{}{"latitude": 10, "longitude": 13}})
-	ts.Method("GetFeature").Response(map[string]interface{}{"name": "hello", "location": map[string]interface{}{"latitude": 99, "longitude": 99}})
+	ts.Method("GetFeature").Response(map[string]any{"name": "hello", "location": map[string]any{"latitude": 10, "longitude": 13}})
+	ts.Method("GetFeature").Response(map[string]any{"name": "hello", "location": map[string]any{"latitude": 99, "longitude": 99}})
 
 	client := routeguide.NewRouteGuideClient(ts.Conn())
 	res, err := client.GetFeature(ctx, &routeguide.Point{
@@ -76,7 +76,7 @@ func TestServerStreaming(t *testing.T) {
 	t.Cleanup(func() {
 		ts.Close()
 	})
-	ts.Method("ListFeatures").Response(map[string]interface{}{"name": "hello"}).Response(map[string]interface{}{"name": "world"})
+	ts.Method("ListFeatures").Response(map[string]any{"name": "hello"}).Response(map[string]any{"name": "world"})
 
 	client := routeguide.NewRouteGuideClient(ts.Conn())
 	stream, err := client.ListFeatures(ctx, &routeguide.Rectangle{
@@ -133,7 +133,7 @@ func TestClientStreaming(t *testing.T) {
 	t.Cleanup(func() {
 		ts.Close()
 	})
-	ts.Method("RecordRoute").Response(map[string]interface{}{"point_count": 2, "feature_count": 2, "distance": 10, "elapsed_time": 345})
+	ts.Method("RecordRoute").Response(map[string]any{"point_count": 2, "feature_count": 2, "distance": 10, "elapsed_time": 345})
 
 	client := routeguide.NewRouteGuideClient(ts.Conn())
 	stream, err := client.RecordRoute(ctx)
@@ -182,7 +182,7 @@ func TestBiStreaming(t *testing.T) {
 		}
 		return strings.Contains(m.(string), "hello from client[0]")
 	}).Header("hello", "header").
-		Response(map[string]interface{}{"location": nil, "message": "hello from server[0]"})
+		Response(map[string]any{"location": nil, "message": "hello from server[0]"})
 	ts.Method("RouteChat").
 		Header("hello", "header").
 		Handler(func(r *Request) *Response {
@@ -270,7 +270,7 @@ func TestServerMatch(t *testing.T) {
 	})
 	ts.Match(func(r *Request) bool {
 		return r.Method == "GetFeature"
-	}).Response(map[string]interface{}{"name": "hello"})
+	}).Response(map[string]any{"name": "hello"})
 
 	client := routeguide.NewRouteGuideClient(ts.Conn())
 	res, err := client.GetFeature(ctx, &routeguide.Point{
@@ -294,7 +294,7 @@ func TestMatcherMatch(t *testing.T) {
 	})
 	ts.Service("routeguide.RouteGuide").Match(func(r *Request) bool {
 		return r.Method == "GetFeature"
-	}).Response(map[string]interface{}{"name": "hello"})
+	}).Response(map[string]any{"name": "hello"})
 
 	client := routeguide.NewRouteGuideClient(ts.Conn())
 	res, err := client.GetFeature(ctx, &routeguide.Point{
@@ -316,7 +316,7 @@ func TestServerService(t *testing.T) {
 	t.Cleanup(func() {
 		ts.Close()
 	})
-	ts.Service("routeguide.RouteGuide").Response(map[string]interface{}{"name": "hello"})
+	ts.Service("routeguide.RouteGuide").Response(map[string]any{"name": "hello"})
 
 	client := routeguide.NewRouteGuideClient(ts.Conn())
 	res, err := client.GetFeature(ctx, &routeguide.Point{
@@ -338,7 +338,7 @@ func TestMatcherService(t *testing.T) {
 	t.Cleanup(func() {
 		ts.Close()
 	})
-	ts.Method("GetFeature").Service("routeguide.RouteGuide").Response(map[string]interface{}{"name": "hello"})
+	ts.Method("GetFeature").Service("routeguide.RouteGuide").Response(map[string]any{"name": "hello"})
 
 	client := routeguide.NewRouteGuideClient(ts.Conn())
 	res, err := client.GetFeature(ctx, &routeguide.Point{
@@ -360,7 +360,7 @@ func TestMatcherMethod(t *testing.T) {
 	t.Cleanup(func() {
 		ts.Close()
 	})
-	ts.Service("routeguide.RouteGuide").Method("GetFeature").Response(map[string]interface{}{"name": "hello"})
+	ts.Service("routeguide.RouteGuide").Method("GetFeature").Response(map[string]any{"name": "hello"})
 
 	client := routeguide.NewRouteGuideClient(ts.Conn())
 	res, err := client.GetFeature(ctx, &routeguide.Point{
@@ -382,7 +382,7 @@ func TestHeader(t *testing.T) {
 	t.Cleanup(func() {
 		ts.Close()
 	})
-	ts.Method("GetFeature").Header("session", "XXXxxXXX").Header("size", "213").Response(map[string]interface{}{"name": "hello"})
+	ts.Method("GetFeature").Header("session", "XXXxxXXX").Header("size", "213").Response(map[string]any{"name": "hello"})
 
 	client := routeguide.NewRouteGuideClient(ts.Conn())
 	var header metadata.MD
@@ -409,7 +409,7 @@ func TestTrailer(t *testing.T) {
 	t.Cleanup(func() {
 		ts.Close()
 	})
-	ts.Method("GetFeature").Trailer("session", "XXXxxXXX").Trailer("size", "213").Response(map[string]interface{}{"name": "hello"})
+	ts.Method("GetFeature").Trailer("session", "XXXxxXXX").Trailer("size", "213").Response(map[string]any{"name": "hello"})
 
 	client := routeguide.NewRouteGuideClient(ts.Conn())
 	var trailer metadata.MD
@@ -436,7 +436,7 @@ func TestResponseHeader(t *testing.T) {
 	t.Cleanup(func() {
 		ts.Close()
 	})
-	ts.Method("GetFeature").Response(map[string]interface{}{"name": "hello"})
+	ts.Method("GetFeature").Response(map[string]any{"name": "hello"})
 
 	client := routeguide.NewRouteGuideClient(ts.Conn())
 	ctx = metadata.AppendToOutgoingContext(ctx, "authentication", "XXXXxxxxXXXX")
@@ -683,12 +683,12 @@ func TestTime(t *testing.T) {
 	now := time.Now()
 	tests := []struct {
 		name     string
-		res      map[string]interface{}
+		res      map[string]any
 		wantTime time.Time
 	}{
 		{
 			"empty is 0 of UNIX timestamp",
-			map[string]interface{}{
+			map[string]any{
 				"message": "hello",
 				"num":     3,
 				"hellos":  []string{"hello", "world"},
@@ -697,7 +697,7 @@ func TestTime(t *testing.T) {
 		},
 		{
 			"timestamppb.Timestamp",
-			map[string]interface{}{
+			map[string]any{
 				"message":     "hello",
 				"num":         3,
 				"hellos":      []string{"hello", "world"},
@@ -749,7 +749,7 @@ func TestTLSServer(t *testing.T) {
 	t.Cleanup(func() {
 		ts.Close()
 	})
-	ts.Method("GetFeature").Response(map[string]interface{}{"name": "hello", "location": map[string]interface{}{"latitude": 10, "longitude": 13}})
+	ts.Method("GetFeature").Response(map[string]any{"name": "hello", "location": map[string]any{"latitude": 10, "longitude": 13}})
 	client := routeguide.NewRouteGuideClient(ts.Conn())
 	res, err := client.GetFeature(ctx, &routeguide.Point{
 		Latitude:  10,
