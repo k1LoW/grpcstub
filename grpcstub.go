@@ -528,13 +528,7 @@ func (s *Server) createUnaryHandler(md protoreflect.MethodDescriptor) func(srv a
 
 		var mes *dynamicpb.Message
 		for _, m := range s.matchers {
-			match := true
-			for _, fn := range m.matchFuncs {
-				if !fn(r) {
-					match = false
-				}
-			}
-			if !match {
+			if !m.matchRequest(r) {
 				continue
 			}
 			m.mu.Lock()
@@ -571,6 +565,9 @@ func (s *Server) createUnaryHandler(md protoreflect.MethodDescriptor) func(srv a
 			return mes, nil
 		}
 
+		s.mu.Lock()
+		s.unmatchedRequests = append(s.unmatchedRequests, r)
+		s.mu.Unlock()
 		return mes, status.Error(codes.NotFound, codes.NotFound.String())
 	}
 }
@@ -582,7 +579,7 @@ func (s *Server) createStreamHandler(md protoreflect.MethodDescriptor) func(srv 
 	case md.IsStreamingClient() && !md.IsStreamingServer():
 		return s.createClientStreamingHandler(md)
 	case md.IsStreamingClient() && md.IsStreamingServer():
-		return s.createBiStreamingHandler(md)
+		return s.createBidiStreamingHandler(md)
 	default:
 		return func(srv any, stream grpc.ServerStream) error {
 			return nil
@@ -613,13 +610,7 @@ func (s *Server) createServerStreamingHandler(md protoreflect.MethodDescriptor) 
 		s.requests = append(s.requests, r)
 		s.mu.Unlock()
 		for _, m := range s.matchers {
-			match := true
-			for _, fn := range m.matchFuncs {
-				if !fn(r) {
-					match = false
-				}
-			}
-			if !match {
+			if !m.matchRequest(r) {
 				continue
 			}
 			m.mu.Lock()
@@ -656,8 +647,12 @@ func (s *Server) createServerStreamingHandler(md protoreflect.MethodDescriptor) 
 					}
 				}
 			}
+			return nil
 		}
-		return nil
+		s.mu.Lock()
+		s.unmatchedRequests = append(s.unmatchedRequests, r)
+		s.mu.Unlock()
+		return status.Error(codes.NotFound, codes.NotFound.String())
 	}
 }
 
@@ -685,59 +680,59 @@ func (s *Server) createClientStreamingHandler(md protoreflect.MethodDescriptor) 
 				s.requests = append(s.requests, r)
 				s.mu.Unlock()
 				rs = append(rs, r)
+				continue
 			}
-			if err == io.EOF {
-				var mes *dynamicpb.Message
-				for _, r := range rs {
-					for _, m := range s.matchers {
-						match := true
-						for _, fn := range m.matchFuncs {
-							if !fn(r) {
-								match = false
-							}
-						}
-						if !match {
-							continue
-						}
-						m.mu.Lock()
-						m.requests = append(m.requests, r)
-						m.mu.Unlock()
-						res := m.handler(r, md)
-						if res.Status != nil && res.Status.Err() != nil {
-							return res.Status.Err()
-						}
-						mes = dynamicpb.NewMessage(md.Output())
-						if len(res.Messages) > 0 {
-							b, err := json.Marshal(res.Messages[0])
-							if err != nil {
-								return err
-							}
-							if err := (protojson.UnmarshalOptions{}).Unmarshal(b, mes); err != nil {
-								return err
-							}
-						}
-						for k, v := range res.Headers {
-							for _, vv := range v {
-								if err := stream.SendHeader(metadata.Pairs(k, vv)); err != nil {
-									return err
-								}
-							}
-						}
-						for k, v := range res.Trailers {
-							for _, vv := range v {
-								stream.SetTrailer((metadata.Pairs(k, vv)))
-							}
-						}
-						return stream.SendMsg(mes)
+
+			if err != io.EOF {
+				return err
+			}
+
+			var mes *dynamicpb.Message
+			for _, m := range s.matchers {
+				if !m.matchRequest(rs...) {
+					continue
+				}
+				m.mu.Lock()
+				m.requests = append(m.requests, rs...)
+				m.mu.Unlock()
+				last := rs[len(rs)-1]
+				res := m.handler(last, md)
+				if res.Status != nil && res.Status.Err() != nil {
+					return res.Status.Err()
+				}
+				mes = dynamicpb.NewMessage(md.Output())
+				if len(res.Messages) > 0 {
+					b, err := json.Marshal(res.Messages[0])
+					if err != nil {
+						return err
+					}
+					if err := (protojson.UnmarshalOptions{}).Unmarshal(b, mes); err != nil {
+						return err
 					}
 				}
-				return status.Error(codes.NotFound, codes.NotFound.String())
+				for k, v := range res.Headers {
+					for _, vv := range v {
+						if err := stream.SendHeader(metadata.Pairs(k, vv)); err != nil {
+							return err
+						}
+					}
+				}
+				for k, v := range res.Trailers {
+					for _, vv := range v {
+						stream.SetTrailer((metadata.Pairs(k, vv)))
+					}
+				}
+				return stream.SendMsg(mes)
 			}
+			s.mu.Lock()
+			s.unmatchedRequests = append(s.unmatchedRequests, rs...)
+			s.mu.Unlock()
+			return status.Error(codes.NotFound, codes.NotFound.String())
 		}
 	}
 }
 
-func (s *Server) createBiStreamingHandler(md protoreflect.MethodDescriptor) func(srv any, stream grpc.ServerStream) error {
+func (s *Server) createBidiStreamingHandler(md protoreflect.MethodDescriptor) func(srv any, stream grpc.ServerStream) error {
 	return func(srv any, stream grpc.ServerStream) error {
 		headerSent := false
 	L:
@@ -767,13 +762,7 @@ func (s *Server) createBiStreamingHandler(md protoreflect.MethodDescriptor) func
 			s.requests = append(s.requests, r)
 			s.mu.Unlock()
 			for _, m := range s.matchers {
-				match := true
-				for _, fn := range m.matchFuncs {
-					if !fn(r) {
-						match = false
-					}
-				}
-				if !match {
+				if !m.matchRequest(r) {
 					continue
 				}
 				m.mu.Lock()
@@ -815,9 +804,23 @@ func (s *Server) createBiStreamingHandler(md protoreflect.MethodDescriptor) func
 				}
 				continue L
 			}
+			s.mu.Lock()
+			s.unmatchedRequests = append(s.unmatchedRequests, r)
+			s.mu.Unlock()
 			return status.Error(codes.NotFound, codes.NotFound.String())
 		}
 	}
+}
+
+func (m *matcher) matchRequest(rs ...*Request) bool {
+	for _, r := range rs {
+		for _, fn := range m.matchFuncs {
+			if !fn(r) {
+				return false
+			}
+		}
+	}
+	return true
 }
 
 func serviceMatchFunc(service string) matchFunc {
