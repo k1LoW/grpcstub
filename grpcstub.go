@@ -10,6 +10,7 @@ import (
 	"io"
 	"net"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"testing"
@@ -54,6 +55,29 @@ type Request struct {
 	Method  string
 	Headers metadata.MD
 	Message Message
+}
+
+func (r Request) String() string {
+	var s []string
+	s = append(s, fmt.Sprintf("%s/%s", r.Service, r.Method))
+	if len(r.Headers) > 0 {
+		var keys []string
+		for k := range r.Headers {
+			keys = append(keys, k)
+		}
+		sort.SliceStable(keys, func(i, j int) bool {
+			return keys[i] < keys[j]
+		})
+		for _, k := range keys {
+			s = append(s, fmt.Sprintf(`%s: %s`, k, strings.Join(r.Headers.Get(k), ", ")))
+		}
+	}
+	s = append(s, "")
+	if r.Message != nil {
+		b, _ := json.MarshalIndent(r.Message, "", "  ")
+		s = append(s, string(b))
+	}
+	return strings.Join(s, "\n") + "\n"
 }
 
 func newRequest(md protoreflect.MethodDescriptor, message Message) *Request {

@@ -12,6 +12,7 @@ import (
 	"github.com/jhump/protoreflect/v2/grpcreflect"
 	"github.com/k1LoW/grpcstub/testdata/hello"
 	"github.com/k1LoW/grpcstub/testdata/routeguide"
+	"github.com/tenntenn/golden"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
@@ -617,6 +618,40 @@ func TestReflection(t *testing.T) {
 			}
 			if tt.wantErr {
 				t.Error("want error")
+			}
+		})
+	}
+}
+
+func TestRequestStringer(t *testing.T) {
+	tests := []struct {
+		r *Request
+	}{
+		{
+			&Request{
+				Service: "helloworld.Greeter",
+				Method:  "SayHello",
+				Message: map[string]any{"name": "alice"},
+				Headers: map[string][]string{"foo": {"bar", "barbar"}, "baz": {"qux"}},
+			},
+		},
+		{
+			&Request{
+				Service: "helloworld.Greeter",
+				Method:  "SayHello",
+			},
+		},
+	}
+	for i, tt := range tests {
+		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
+			got := tt.r.String()
+			f := fmt.Sprintf("request_stringer_%d", i)
+			if os.Getenv("UPDATE_GOLDEN") != "" {
+				golden.Update(t, "testdata", f, got)
+				return
+			}
+			if diff := golden.Diff(t, "testdata", f, got); diff != "" {
+				t.Error(diff)
 			}
 		})
 	}

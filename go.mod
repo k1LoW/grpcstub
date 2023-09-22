@@ -9,15 +9,19 @@ require (
 	github.com/jaswdr/faker v1.16.0
 	github.com/jhump/protoreflect/v2 v2.0.0-20230705224148-00680b949112
 	github.com/minio/pkg v1.6.4
+	github.com/tenntenn/golden v0.5.1
 	google.golang.org/grpc v1.57.0
 	google.golang.org/protobuf v1.31.0
 )
 
 require (
 	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/josharian/mapfs v0.0.0-20210615234106-095c008854e6 // indirect
+	github.com/josharian/txtarfs v0.0.0-20210615234325-77aca6df5bca // indirect
 	golang.org/x/net v0.9.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
 	golang.org/x/sys v0.7.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
+	golang.org/x/tools v0.6.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230525234030-28d5490b6b19 // indirect
 )
