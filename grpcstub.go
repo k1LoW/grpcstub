@@ -128,6 +128,7 @@ type matcher struct {
 	matchFuncs []matchFunc
 	handler    handlerFunc
 	requests   []*Request
+	t          *testing.T
 	mu         sync.RWMutex
 }
 
@@ -283,6 +284,7 @@ func (s *Server) startServer() {
 func (s *Server) Match(fn func(r *Request) bool) *matcher {
 	m := &matcher{
 		matchFuncs: []matchFunc{fn},
+		t:          s.t,
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -305,6 +307,7 @@ func (s *Server) Service(service string) *matcher {
 	fn := serviceMatchFunc(service)
 	m := &matcher{
 		matchFuncs: []matchFunc{fn},
+		t:          s.t,
 	}
 	s.matchers = append(s.matchers, m)
 	return m
@@ -336,6 +339,7 @@ func (s *Server) Method(method string) *matcher {
 	fn := methodMatchFunc(method)
 	m := &matcher{
 		matchFuncs: []matchFunc{fn},
+		t:          s.t,
 	}
 	s.matchers = append(s.matchers, m)
 	return m
@@ -400,7 +404,20 @@ func (m *matcher) Handler(fn func(r *Request) *Response) {
 }
 
 // Response set handler which return response.
-func (m *matcher) Response(message map[string]any) *matcher {
+func (m *matcher) Response(message any) *matcher {
+	mm := map[string]any{}
+	switch v := message.(type) {
+	case map[string]any:
+		mm = v
+	default:
+		b, err := json.Marshal(v)
+		if err != nil {
+			m.t.Fatalf("failed to convert message: %v", err)
+		}
+		if err := json.Unmarshal(b, &mm); err != nil {
+			m.t.Fatalf("failed to convert message: %v", err)
+		}
+	}
 	prev := m.handler
 	m.handler = func(r *Request, md protoreflect.MethodDescriptor) *Response {
 		var res *Response
@@ -409,7 +426,7 @@ func (m *matcher) Response(message map[string]any) *matcher {
 		} else {
 			res = prev(r, md)
 		}
-		res.Messages = append(res.Messages, message)
+		res.Messages = append(res.Messages, mm)
 		return res
 	}
 	return m
