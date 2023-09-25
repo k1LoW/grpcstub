@@ -656,3 +656,27 @@ func TestRequestStringer(t *testing.T) {
 		})
 	}
 }
+
+func TestResponseAny(t *testing.T) {
+	ctx := context.Background()
+	ts := NewServer(t, "testdata/route_guide.proto")
+	t.Cleanup(func() {
+		ts.Close()
+	})
+	ts.Service("routeguide.RouteGuide").Method("GetFeature").Response(&routeguide.Feature{
+		Name: "hello",
+	})
+
+	client := routeguide.NewRouteGuideClient(ts.Conn())
+	res, err := client.GetFeature(ctx, &routeguide.Point{
+		Latitude:  10,
+		Longitude: 13,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := res.Name
+	if want := "hello"; got != want {
+		t.Errorf("got %v\nwant %v", got, want)
+	}
+}
