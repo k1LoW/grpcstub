@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.15.0](https://github.com/k1LoW/grpcstub/compare/v0.14.0...v0.15.0) - 2023-09-25
+### New Features 🎉
+- Response() supports accepting any value by @k1LoW in https://github.com/k1LoW/grpcstub/pull/58
+
 ## [v0.14.0](https://github.com/k1LoW/grpcstub/compare/v0.13.0...v0.14.0) - 2023-09-22
 ### Breaking Changes 🛠
 - Requests() returns matched requests only and UnmatchedRequests() returns unmatched requests by @k1LoW in https://github.com/k1LoW/grpcstub/pull/56
