@@ -406,11 +406,11 @@ func (m *matcher) Handler(fn func(r *Request) *Response) {
 // Response set handler which return response.
 func (m *matcher) Response(message any) *matcher {
 	mm := map[string]any{}
-	switch message.(type) {
+	switch v := message.(type) {
 	case map[string]any:
-		mm = message.(map[string]any)
+		mm = v
 	default:
-		b, err := json.Marshal(message)
+		b, err := json.Marshal(v)
 		if err != nil {
 			m.t.Fatalf("failed to convert message: %v", err)
 		}
