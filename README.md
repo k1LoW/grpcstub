@@ -15,7 +15,7 @@ import (
 	"testing"
 
 	"github.com/k1LoW/grpcstub"
-    "github.com/k1LoW/myapp/protobuf/gen/go/routeguide"
+	"github.com/k1LoW/myapp/protobuf/gen/go/routeguide"
 )
 
 func TestClient(t *testing.T) {
