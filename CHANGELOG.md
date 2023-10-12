@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.15.1](https://github.com/k1LoW/grpcstub/compare/v0.15.0...v0.15.1) - 2023-10-12
+### Other Changes
+- Bump golang.org/x/net from 0.9.0 to 0.17.0 by @dependabot in https://github.com/k1LoW/grpcstub/pull/61
+
 ## [v0.15.0](https://github.com/k1LoW/grpcstub/compare/v0.14.0...v0.15.0) - 2023-09-25
 ### New Features 🎉
 - Response() supports accepting any value by @k1LoW in https://github.com/k1LoW/grpcstub/pull/58
