@@ -10,7 +10,7 @@ require (
 	github.com/jhump/protoreflect/v2 v2.0.0-20230705224148-00680b949112
 	github.com/minio/pkg v1.6.4
 	github.com/tenntenn/golden v0.5.1
-	google.golang.org/grpc v1.57.0
+	google.golang.org/grpc v1.57.1
 	google.golang.org/protobuf v1.31.0
 )
 
