@@ -474,6 +474,17 @@ func (s *Server) UnmatchedRequests() []*Request {
 	return s.unmatchedRequests
 }
 
+// ClearMatchers clear matchers.
+func (s *Server) ClearMatchers() {
+	s.matchers = nil
+}
+
+// ClearRequests clear requests.
+func (s *Server) ClearRequests() {
+	s.requests = nil
+	s.unmatchedRequests = nil
+}
+
 // Requests returns []*grpcstub.Request received by matcher.
 func (m *matcher) Requests() []*Request {
 	m.mu.RLock()
