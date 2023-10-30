@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.15.3](https://github.com/k1LoW/grpcstub/compare/v0.15.2...v0.15.3) - 2023-10-30
+### New Features 🎉
+- Add methods for clearing by @k1LoW in https://github.com/k1LoW/grpcstub/pull/64
+
 ## [v0.15.2](https://github.com/k1LoW/grpcstub/compare/v0.15.1...v0.15.2) - 2023-10-26
 ### Other Changes
 - Bump google.golang.org/grpc from 1.57.0 to 1.57.1 by @dependabot in https://github.com/k1LoW/grpcstub/pull/62
