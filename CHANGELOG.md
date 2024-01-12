@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.16.0](https://github.com/k1LoW/grpcstub/compare/v0.15.3...v0.16.0) - 2024-01-12
+### Breaking Changes 🛠
+- Fix to accept *testing.B by @k1LoW in https://github.com/k1LoW/grpcstub/pull/67
+
 ## [v0.15.3](https://github.com/k1LoW/grpcstub/compare/v0.15.2...v0.15.3) - 2023-10-30
 ### New Features 🎉
 - Add methods for clearing by @k1LoW in https://github.com/k1LoW/grpcstub/pull/64
