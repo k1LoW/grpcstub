@@ -48,6 +48,16 @@ const (
 	HealthCheckService_FLAPPING = "flapping"
 )
 
+var _ TB = (testing.TB)(nil)
+
+type TB interface {
+	Error(args ...any)
+	Errorf(format string, args ...any)
+	Fatal(args ...any)
+	Fatalf(format string, args ...any)
+	Helper()
+}
+
 type Message map[string]any
 
 type Request struct {
@@ -120,7 +130,7 @@ type Server struct {
 	healthCheck       bool
 	disableReflection bool
 	status            serverStatus
-	t                 *testing.T
+	t                 TB
 	mu                sync.RWMutex
 }
 
@@ -128,7 +138,7 @@ type matcher struct {
 	matchFuncs []matchFunc
 	handler    handlerFunc
 	requests   []*Request
-	t          *testing.T
+	t          TB
 	mu         sync.RWMutex
 }
 
@@ -136,7 +146,7 @@ type matchFunc func(r *Request) bool
 type handlerFunc func(r *Request, md protoreflect.MethodDescriptor) *Response
 
 // NewServer returns a new server with registered *grpc.Server
-func NewServer(t *testing.T, protopath string, opts ...Option) *Server {
+func NewServer(t TB, protopath string, opts ...Option) *Server {
 	t.Helper()
 	ctx := context.Background()
 	c := &config{}
@@ -174,7 +184,7 @@ func NewServer(t *testing.T, protopath string, opts ...Option) *Server {
 }
 
 // NewTLSServer returns a new server with registered secure *grpc.Server
-func NewTLSServer(t *testing.T, proto string, cacert, cert, key []byte, opts ...Option) *Server {
+func NewTLSServer(t TB, proto string, cacert, cert, key []byte, opts ...Option) *Server {
 	opts = append(opts, UseTLS(cacert, cert, key))
 	return NewServer(t, proto, opts...)
 }
