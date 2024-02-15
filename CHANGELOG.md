@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.17.0](https://github.com/k1LoW/grpcstub/compare/v0.16.0...v0.17.0) - 2024-02-15
+### Other Changes
+- Update pkgs by @k1LoW in https://github.com/k1LoW/grpcstub/pull/68
+
 ## [v0.16.0](https://github.com/k1LoW/grpcstub/compare/v0.15.3...v0.16.0) - 2024-01-12
 ### Breaking Changes 🛠
 - Fix to accept *testing.B by @k1LoW in https://github.com/k1LoW/grpcstub/pull/67
