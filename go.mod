@@ -9,7 +9,7 @@ require (
 	github.com/jaswdr/faker v1.19.1
 	github.com/jhump/protoreflect/v2 v2.0.0-20230705224148-00680b949112
 	github.com/minio/pkg v1.7.5
-	github.com/tenntenn/golden v0.5.1
+	github.com/tenntenn/golden v0.4.0
 	google.golang.org/grpc v1.61.1
 	google.golang.org/protobuf v1.32.0
 )
