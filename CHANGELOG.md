@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.17.1](https://github.com/k1LoW/grpcstub/compare/v0.17.0...v0.17.1) - 2024-02-16
+### Other Changes
+- Use v0.4.0 until https://github.com/tenntenn/golden/pull/16 is fixed. by @k1LoW in https://github.com/k1LoW/grpcstub/pull/70
+
 ## [v0.17.0](https://github.com/k1LoW/grpcstub/compare/v0.16.0...v0.17.0) - 2024-02-15
 ### Other Changes
 - Update pkgs by @k1LoW in https://github.com/k1LoW/grpcstub/pull/68
