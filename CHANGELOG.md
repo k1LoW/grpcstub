@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.17.2](https://github.com/k1LoW/grpcstub/compare/v0.17.1...v0.17.2) - 2024-04-15
+### Fix bug 🐛
+- Fix race condition by @k1LoW in https://github.com/k1LoW/grpcstub/pull/74
+### Other Changes
+- Bump google.golang.org/protobuf from 1.32.0 to 1.33.0 by @dependabot in https://github.com/k1LoW/grpcstub/pull/72
+
 ## [v0.17.1](https://github.com/k1LoW/grpcstub/compare/v0.17.0...v0.17.1) - 2024-02-16
 ### Other Changes
 - Use v0.4.0 until https://github.com/tenntenn/golden/pull/16 is fixed. by @k1LoW in https://github.com/k1LoW/grpcstub/pull/70
