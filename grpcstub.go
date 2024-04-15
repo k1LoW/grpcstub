@@ -191,9 +191,13 @@ func NewTLSServer(t TB, proto string, cacert, cert, key []byte, opts ...Option) 
 
 // Close shuts down *grpc.Server
 func (s *Server) Close() {
+	s.mu.Lock()
 	s.status = status_closing
+	s.mu.Unlock()
 	defer func() {
+		s.mu.Lock()
 		s.status = status_closed
+		s.mu.Unlock()
 	}()
 	s.t.Helper()
 	if s.listener == nil {
@@ -270,9 +274,13 @@ func (s *Server) ClientConn() *grpc.ClientConn {
 }
 
 func (s *Server) startServer() {
+	s.mu.Lock()
 	s.status = status_starting
+	s.mu.Unlock()
 	defer func() {
+		s.mu.Lock()
 		s.status = status_start
+		s.mu.Unlock()
 	}()
 	s.t.Helper()
 	if !s.disableReflection {
@@ -518,7 +526,10 @@ func (s *Server) registerServer() {
 		status := healthpb.HealthCheckResponse_SERVING
 		healthSrv.SetServingStatus(HealthCheckService_FLAPPING, status)
 		for {
-			switch s.status {
+			s.mu.Lock()
+			ss := s.status
+			s.mu.Unlock()
+			switch ss {
 			case status_start, status_starting:
 				if status == healthpb.HealthCheckResponse_SERVING {
 					status = healthpb.HealthCheckResponse_NOT_SERVING
