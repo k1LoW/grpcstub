@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.17.4](https://github.com/k1LoW/grpcstub/compare/v0.17.3...v0.17.4) - 2024-04-19
+### Other Changes
+- Bump golang.org/x/net from 0.21.0 to 0.23.0 by @dependabot in https://github.com/k1LoW/grpcstub/pull/75
+
 ## [v0.17.2](https://github.com/k1LoW/grpcstub/compare/v0.17.1...v0.17.2) - 2024-04-15
 ### Fix bug 🐛
 - Fix race condition by @k1LoW in https://github.com/k1LoW/grpcstub/pull/74
