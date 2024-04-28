@@ -680,3 +680,13 @@ func TestResponseAny(t *testing.T) {
 		t.Errorf("got %v\nwant %v", got, want)
 	}
 }
+
+func TestBufProtoRegistry(t *testing.T) {
+	ts := NewServer(t, "testdata/bsr/protobuf/pinger/pinger.proto", BufLock("testdata/bsr/protobuf/buf.lock"))
+	t.Cleanup(func() {
+		ts.Close()
+	})
+	ts.Service("pinger.PingerService").Method("Ping").Response(map[string]any{
+		"message": "hello",
+	})
+}

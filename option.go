@@ -15,6 +15,9 @@ type config struct {
 	cacert, cert, key []byte
 	healthCheck       bool
 	disableReflection bool
+	bufLock           string
+	bufConfig         string
+	bufModules        []string
 }
 
 type Option func(*config) error
@@ -107,6 +110,30 @@ func EnableHealthCheck() Option {
 func DisableReflection() Option {
 	return func(c *config) error {
 		c.disableReflection = true
+		return nil
+	}
+}
+
+// BufLock use buf.lock for BSR.
+func BufLock(lock string) Option {
+	return func(c *config) error {
+		c.bufLock = lock
+		return nil
+	}
+}
+
+// BufConfig use buf.yaml for BSR.
+func BufConfig(p string) Option {
+	return func(c *config) error {
+		c.bufConfig = p
+		return nil
+	}
+}
+
+// BufModule use buf modules for BSR.
+func BufModule(modules ...string) Option {
+	return func(c *config) error {
+		c.bufModules = unique(append(c.bufModules, modules...))
 		return nil
 	}
 }

@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package pinger;
+
+import "buf/validate/validate.proto";
+
+service PingerService {
+  rpc Ping(PingRequest) returns (PingResponse);
+}
+
+message PingRequest {
+  string message = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message PingResponse {
+  string message = 1 [(buf.validate.field).string.min_len = 1];
+}
+

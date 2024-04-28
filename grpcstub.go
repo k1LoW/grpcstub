@@ -18,6 +18,7 @@ import (
 
 	"github.com/bufbuild/protocompile"
 	"github.com/bufbuild/protocompile/linker"
+	"github.com/k1LoW/bsrr"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
@@ -161,7 +162,7 @@ func NewServer(t TB, protopath string, opts ...Option) *Server {
 		healthCheck:       c.healthCheck,
 		disableReflection: c.disableReflection,
 	}
-	if err := s.resolveProtos(ctx, c.importPaths, c.protos); err != nil {
+	if err := s.resolveProtos(ctx, c); err != nil {
 		t.Fatal(err)
 	}
 	if c.useTLS {
@@ -924,15 +925,32 @@ func methodMatchFunc(method string) matchFunc {
 	}
 }
 
-func (s *Server) resolveProtos(ctx context.Context, importPaths, protos []string) error {
+func (s *Server) resolveProtos(ctx context.Context, c *config) error {
+	importPaths := c.importPaths
+	protos := c.protos
 	importPaths, protos, err := resolvePaths(importPaths, protos...)
 	if err != nil {
 		return err
 	}
+	var bsrrOpts []bsrr.Option
+	if c.bufConfig != "" {
+		bsrrOpts = append(bsrrOpts, bsrr.BufConfig(c.bufConfig))
+	}
+	if c.bufLock != "" {
+		bsrrOpts = append(bsrrOpts, bsrr.BufLock(c.bufLock))
+	}
+	bsrrOpts = append(bsrrOpts, bsrr.BufModule(c.bufModules...))
+	br, err := bsrr.New(bsrrOpts...)
+	if err != nil {
+		return err
+	}
 	comp := protocompile.Compiler{
-		Resolver: protocompile.WithStandardImports(&protocompile.SourceResolver{
-			ImportPaths: importPaths,
-		}),
+		Resolver: protocompile.WithStandardImports(protocompile.CompositeResolver([]protocompile.Resolver{
+			&protocompile.SourceResolver{
+				ImportPaths: importPaths,
+			},
+			br,
+		})),
 	}
 	fds, err := comp.Compile(ctx, protos...)
 	if err != nil {
