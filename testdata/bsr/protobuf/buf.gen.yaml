@@ -1,0 +1,14 @@
+version: v1
+managed:
+  enabled: true
+  go_package_prefix:
+    default: github.com/k1LoW/grpcstub/testdata/bsr/protobuf/gen/go
+    except:
+      - buf.build/bufbuild/protovalidate
+plugins:
+  - name: go
+    out: gen/go
+    opt: paths=source_relative
+  - name: go-grpc
+    out: gen/go
+    opt: paths=source_relative
