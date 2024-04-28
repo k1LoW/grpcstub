@@ -682,11 +682,33 @@ func TestResponseAny(t *testing.T) {
 }
 
 func TestBufProtoRegistry(t *testing.T) {
-	ts := NewServer(t, "testdata/bsr/protobuf/pinger/pinger.proto", BufLock("testdata/bsr/protobuf/buf.lock"))
-	t.Cleanup(func() {
-		ts.Close()
+	t.Run("Use buf.lock", func(t *testing.T) {
+		ts := NewServer(t, "testdata/bsr/protobuf/pinger/pinger.proto", BufLock("testdata/bsr/protobuf/buf.lock"))
+		t.Cleanup(func() {
+			ts.Close()
+		})
+		ts.Service("pinger.PingerService").Method("Ping").Response(map[string]any{
+			"message": "hello",
+		})
 	})
-	ts.Service("pinger.PingerService").Method("Ping").Response(map[string]any{
-		"message": "hello",
+
+	t.Run("Use buf.yaml", func(t *testing.T) {
+		ts := NewServer(t, "testdata/bsr/protobuf/pinger/pinger.proto", BufConfig("testdata/bsr/protobuf/buf.yaml"))
+		t.Cleanup(func() {
+			ts.Close()
+		})
+		ts.Service("pinger.PingerService").Method("Ping").Response(map[string]any{
+			"message": "hello",
+		})
+	})
+
+	t.Run("Specify modules", func(t *testing.T) {
+		ts := NewServer(t, "testdata/bsr/protobuf/pinger/pinger.proto", BufModule("buf.build/bufbuild/protovalidate/tree/b983156c5e994cc9892e0ce3e64e17e0"))
+		t.Cleanup(func() {
+			ts.Close()
+		})
+		ts.Service("pinger.PingerService").Method("Ping").Response(map[string]any{
+			"message": "hello",
+		})
 	})
 }
