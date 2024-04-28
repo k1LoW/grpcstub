@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.18.0](https://github.com/k1LoW/grpcstub/compare/v0.17.4...v0.18.0) - 2024-04-28
+### New Features 🎉
+- Support Buf Schema Registry by @k1LoW in https://github.com/k1LoW/grpcstub/pull/77
+
 ## [v0.17.4](https://github.com/k1LoW/grpcstub/compare/v0.17.3...v0.17.4) - 2024-04-19
 ### Other Changes
 - Bump golang.org/x/net from 0.21.0 to 0.23.0 by @dependabot in https://github.com/k1LoW/grpcstub/pull/75
