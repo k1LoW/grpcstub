@@ -10,13 +10,12 @@ require (
 	github.com/jhump/protoreflect/v2 v2.0.0-20230705224148-00680b949112
 	github.com/k1LoW/bsrr v0.4.0
 	github.com/minio/pkg v1.7.5
-	github.com/tenntenn/golden v0.4.0
-	google.golang.org/grpc v1.61.1
+	github.com/tenntenn/golden v0.5.4
+	google.golang.org/grpc v1.63.2
 	google.golang.org/protobuf v1.33.1-0.20240408130810-98873a205002
 )
 
 require (
-	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/josharian/mapfs v0.0.0-20210615234106-095c008854e6 // indirect
 	github.com/josharian/txtarfs v0.0.0-20210615234325-77aca6df5bca // indirect
 	golang.org/x/net v0.24.0 // indirect
