@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.19.0](https://github.com/k1LoW/grpcstub/compare/v0.18.0...v0.19.0) - 2024-04-29
+### Other Changes
+- Update pkgs by @k1LoW in https://github.com/k1LoW/grpcstub/pull/79
+- chore(deps): bump the dependencies group with 2 updates by @dependabot in https://github.com/k1LoW/grpcstub/pull/80
+- chore(deps): bump the dependencies group with 2 updates by @dependabot in https://github.com/k1LoW/grpcstub/pull/81
+
 ## [v0.18.0](https://github.com/k1LoW/grpcstub/compare/v0.17.4...v0.18.0) - 2024-04-28
 ### New Features 🎉
 - Support Buf Schema Registry by @k1LoW in https://github.com/k1LoW/grpcstub/pull/77
