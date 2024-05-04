@@ -150,6 +150,7 @@ type matchFunc func(r *Request) bool
 type handlerFunc func(r *Request, md protoreflect.MethodDescriptor) *Response
 
 // NewServer returns a new server with registered *grpc.Server
+// protopath is a path of .proto files, import path directory or buf directory.
 func NewServer(t TB, protopath string, opts ...Option) *Server {
 	t.Helper()
 	ctx := context.Background()
