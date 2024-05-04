@@ -9,10 +9,11 @@ require (
 	github.com/jaswdr/faker v1.19.1
 	github.com/jhump/protoreflect/v2 v2.0.0-20230705224148-00680b949112
 	github.com/k1LoW/bufresolv v0.6.1
+	github.com/k1LoW/protoresolv v0.1.0
 	github.com/minio/pkg v1.7.5
 	github.com/tenntenn/golden v0.5.4
 	google.golang.org/grpc v1.63.2
-	google.golang.org/protobuf v1.33.1-0.20240408130810-98873a205002
+	google.golang.org/protobuf v1.34.0
 )
 
 require (

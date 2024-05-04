@@ -35,7 +35,6 @@ func Proto(proto string) Option {
 			proto = filepath.Join(proto, "*")
 		}
 		base, pattern := doublestar.SplitPattern(filepath.ToSlash(proto))
-		c.importPaths = unique(append(c.importPaths, base))
 		abs, err := filepath.Abs(base)
 		if err != nil {
 			return err
