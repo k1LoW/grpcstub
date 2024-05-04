@@ -15,54 +15,19 @@ type config struct {
 	cacert, cert, key []byte
 	healthCheck       bool
 	disableReflection bool
-	bufDir            string
-	bufLock           string
-	bufConfig         string
+	bufDirs           []string
+	bufLocks          []string
+	bufConfigs        []string
 	bufModules        []string
 }
 
 type Option func(*config) error
 
-// Proto append proto
-func Proto(proto string) Option {
-	return func(c *config) error {
-		protos := []string{}
-		if f, err := os.Stat(proto); err == nil {
-			if !f.IsDir() {
-				c.protos = unique(append(c.protos, proto))
-				return nil
-			}
-			proto = filepath.Join(proto, "*")
-		}
-		base, pattern := doublestar.SplitPattern(filepath.ToSlash(proto))
-		abs, err := filepath.Abs(base)
-		if err != nil {
-			return err
-		}
-		fsys := os.DirFS(abs)
-		if err := doublestar.GlobWalk(fsys, pattern, func(p string, d fs.DirEntry) error {
-			if d.IsDir() {
-				return nil
-			}
-			protos = unique(append(protos, filepath.Join(base, p)))
-			return nil
-		}); err != nil {
-			return err
-		}
-		if len(protos) == 0 {
-			c.protos = unique(append(c.protos, proto))
-		} else {
-			c.protos = unique(append(c.protos, protos...))
-		}
-		return nil
-	}
-}
-
-// Protos append protos
-func Protos(protos []string) Option {
+// Proto append protos
+func Proto(protos ...string) Option {
 	return func(c *config) error {
 		for _, p := range protos {
-			opt := Proto(p)
+			opt := proto(p)
 			if err := opt(c); err != nil {
 				return err
 			}
@@ -71,16 +36,8 @@ func Protos(protos []string) Option {
 	}
 }
 
-// ImportPath set import path
-func ImportPath(path string) Option {
-	return func(c *config) error {
-		c.importPaths = unique(append(c.importPaths, path))
-		return nil
-	}
-}
-
-// ImportPaths set import paths
-func ImportPaths(paths []string) Option {
+// ImportPath set import paths
+func ImportPath(paths ...string) Option {
 	return func(c *config) error {
 		c.importPaths = unique(append(c.importPaths, paths...))
 		return nil
@@ -115,25 +72,25 @@ func DisableReflection() Option {
 }
 
 // BufDir use buf directory.
-func BufDir(dir string) Option {
+func BufDir(dirs ...string) Option {
 	return func(c *config) error {
-		c.bufDir = dir
+		c.bufDirs = unique(append(c.bufDirs, dirs...))
 		return nil
 	}
 }
 
 // BufLock use buf.lock for BSR.
-func BufLock(lock string) Option {
+func BufLock(locks ...string) Option {
 	return func(c *config) error {
-		c.bufLock = lock
+		c.bufLocks = unique(append(c.bufLocks, locks...))
 		return nil
 	}
 }
 
 // BufConfig use buf.yaml for BSR.
-func BufConfig(p string) Option {
+func BufConfig(configs ...string) Option {
 	return func(c *config) error {
-		c.bufConfig = p
+		c.bufConfigs = unique(append(c.bufConfigs, configs...))
 		return nil
 	}
 }
@@ -154,6 +111,40 @@ func BufModules(modules []string) Option {
 			if err := opt(c); err != nil {
 				return err
 			}
+		}
+		return nil
+	}
+}
+
+func proto(proto string) Option {
+	return func(c *config) error {
+		protos := []string{}
+		if f, err := os.Stat(proto); err == nil {
+			if !f.IsDir() {
+				c.protos = unique(append(c.protos, proto))
+				return nil
+			}
+			proto = filepath.Join(proto, "*")
+		}
+		base, pattern := doublestar.SplitPattern(filepath.ToSlash(proto))
+		abs, err := filepath.Abs(base)
+		if err != nil {
+			return err
+		}
+		fsys := os.DirFS(abs)
+		if err := doublestar.GlobWalk(fsys, pattern, func(p string, d fs.DirEntry) error {
+			if d.IsDir() {
+				return nil
+			}
+			protos = unique(append(protos, filepath.Join(base, p)))
+			return nil
+		}); err != nil {
+			return err
+		}
+		if len(protos) == 0 {
+			c.protos = unique(append(c.protos, proto))
+		} else {
+			c.protos = unique(append(c.protos, protos...))
 		}
 		return nil
 	}
