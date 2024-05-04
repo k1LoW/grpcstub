@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.20.0](https://github.com/k1LoW/grpcstub/compare/v0.19.0...v0.20.0) - 2024-05-04
+### Breaking Changes 🛠
+- Use bufresolv by @k1LoW in https://github.com/k1LoW/grpcstub/pull/83
+
 ## [v0.19.0](https://github.com/k1LoW/grpcstub/compare/v0.18.0...v0.19.0) - 2024-04-29
 ### Other Changes
 - Update pkgs by @k1LoW in https://github.com/k1LoW/grpcstub/pull/79
