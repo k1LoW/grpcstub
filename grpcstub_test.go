@@ -416,6 +416,7 @@ func TestLoadProto(t *testing.T) {
 		{"testdata/route_guide.proto"},
 		{"testdata/hello.proto"},
 		{"testdata/*.proto"},
+		{"testdata/bsr/protobuf"},
 	}
 	ctx := context.Background()
 	for _, tt := range tests {
