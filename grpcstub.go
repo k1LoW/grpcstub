@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"os"
+	"path/filepath"
 	"slices"
 	"sort"
 	"strings"
@@ -152,7 +154,21 @@ func NewServer(t TB, protopath string, opts ...Option) *Server {
 	t.Helper()
 	ctx := context.Background()
 	c := &config{}
-	opts = append(opts, Proto(protopath))
+	if protopath != "" {
+		if fi, err := os.Stat(protopath); err == nil && fi.IsDir() {
+			if _, err := os.Stat(filepath.Join(protopath, "buf.yaml")); err == nil {
+				opts = append(opts, BufDir(protopath))
+			} else if _, err := os.Stat(filepath.Join(protopath, "buf.lock")); err == nil {
+				opts = append(opts, BufDir(protopath))
+			} else if _, err := os.Stat(filepath.Join(protopath, "buf.work.yaml")); err == nil {
+				opts = append(opts, BufDir(protopath))
+			} else {
+				opts = append(opts, ImportPath(protopath))
+			}
+		} else {
+			opts = append(opts, Proto(protopath))
+		}
+	}
 	for _, opt := range opts {
 		if err := opt(c); err != nil {
 			t.Fatal(err)
@@ -186,9 +202,9 @@ func NewServer(t TB, protopath string, opts ...Option) *Server {
 }
 
 // NewTLSServer returns a new server with registered secure *grpc.Server
-func NewTLSServer(t TB, proto string, cacert, cert, key []byte, opts ...Option) *Server {
+func NewTLSServer(t TB, protopath string, cacert, cert, key []byte, opts ...Option) *Server {
 	opts = append(opts, UseTLS(cacert, cert, key))
-	return NewServer(t, proto, opts...)
+	return NewServer(t, protopath, opts...)
 }
 
 // Close shuts down *grpc.Server

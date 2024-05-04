@@ -20,7 +20,7 @@ import (
 
 func TestClient(t *testing.T) {
 	ctx := context.Background()
-	ts := grpcstub.NewServer(t, "protobuf/proto/*.proto")
+	ts := grpcstub.NewServer(t, "path/to/protobuf")
 	t.Cleanup(func() {
 		ts.Close()
 	})
@@ -64,7 +64,7 @@ grpcstub can return responses dynamically using the protocol buffer schema.
 ### Dynamic response to all requests
 
 ``` go
-ts := grpcstub.NewServer(t, "path/to/*.proto")
+ts := grpcstub.NewServer(t, "path/to/protobuf")
 t.Cleanup(func() {
 	ts.Close()
 })
@@ -74,7 +74,7 @@ ts.ResponseDynamic()
 ### Dynamic response to a request to a specific method (rpc)
 
 ``` go
-ts := grpcstub.NewServer(t, "path/to/*.proto")
+ts := grpcstub.NewServer(t, "path/to/protobuf")
 t.Cleanup(func() {
 	ts.Close()
 })
@@ -84,7 +84,7 @@ ts.Service("routeguide.RouteGuide").Method("GetFeature").ResponseDynamic()
 ### Dynamic response with your own generators
 
 ``` go
-ts := grpcstub.NewServer(t, "path/to/*.proto")
+ts := grpcstub.NewServer(t, "path/to/protobuf")
 t.Cleanup(func() {
 	ts.Close()
 })
