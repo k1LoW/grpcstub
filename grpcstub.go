@@ -18,7 +18,7 @@ import (
 
 	"github.com/bufbuild/protocompile"
 	"github.com/bufbuild/protocompile/linker"
-	"github.com/k1LoW/bsrr"
+	"github.com/k1LoW/bufresolv"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
@@ -932,15 +932,18 @@ func (s *Server) resolveProtos(ctx context.Context, c *config) error {
 	if err != nil {
 		return err
 	}
-	var bsrrOpts []bsrr.Option
+	var bufresolvOpts []bufresolv.Option
+	if c.bufDir != "" {
+		bufresolvOpts = append(bufresolvOpts, bufresolv.BufDir(c.bufDir))
+	}
 	if c.bufConfig != "" {
-		bsrrOpts = append(bsrrOpts, bsrr.BufConfig(c.bufConfig))
+		bufresolvOpts = append(bufresolvOpts, bufresolv.BufConfig(c.bufConfig))
 	}
 	if c.bufLock != "" {
-		bsrrOpts = append(bsrrOpts, bsrr.BufLock(c.bufLock))
+		bufresolvOpts = append(bufresolvOpts, bufresolv.BufLock(c.bufLock))
 	}
-	bsrrOpts = append(bsrrOpts, bsrr.BufModule(c.bufModules...))
-	br, err := bsrr.New(bsrrOpts...)
+	bufresolvOpts = append(bufresolvOpts, bufresolv.BufModule(c.bufModules...))
+	br, err := bufresolv.New(bufresolvOpts...)
 	if err != nil {
 		return err
 	}
@@ -952,6 +955,7 @@ func (s *Server) resolveProtos(ctx context.Context, c *config) error {
 			br,
 		})),
 	}
+	protos = unique(append(protos, br.Paths()...))
 	fds, err := comp.Compile(ctx, protos...)
 	if err != nil {
 		return err

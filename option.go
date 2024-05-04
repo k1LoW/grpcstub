@@ -15,6 +15,7 @@ type config struct {
 	cacert, cert, key []byte
 	healthCheck       bool
 	disableReflection bool
+	bufDir            string
 	bufLock           string
 	bufConfig         string
 	bufModules        []string
@@ -114,6 +115,14 @@ func DisableReflection() Option {
 	}
 }
 
+// BufDir use buf directory.
+func BufDir(dir string) Option {
+	return func(c *config) error {
+		c.bufDir = dir
+		return nil
+	}
+}
+
 // BufLock use buf.lock for BSR.
 func BufLock(lock string) Option {
 	return func(c *config) error {
@@ -131,9 +140,22 @@ func BufConfig(p string) Option {
 }
 
 // BufModule use buf modules for BSR.
-func BufModule(modules ...string) Option {
+func BufModule(module string) Option {
 	return func(c *config) error {
-		c.bufModules = unique(append(c.bufModules, modules...))
+		c.bufModules = unique(append(c.bufModules, module))
+		return nil
+	}
+}
+
+// BufModules use buf modules for BSR.
+func BufModules(modules []string) Option {
+	return func(c *config) error {
+		for _, m := range modules {
+			opt := BufModule(m)
+			if err := opt(c); err != nil {
+				return err
+			}
+		}
 		return nil
 	}
 }

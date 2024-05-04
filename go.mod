@@ -8,7 +8,7 @@ require (
 	github.com/google/go-cmp v0.6.0
 	github.com/jaswdr/faker v1.19.1
 	github.com/jhump/protoreflect/v2 v2.0.0-20230705224148-00680b949112
-	github.com/k1LoW/bsrr v0.4.0
+	github.com/k1LoW/bufresolv v0.6.1
 	github.com/minio/pkg v1.7.5
 	github.com/tenntenn/golden v0.5.4
 	google.golang.org/grpc v1.63.2
