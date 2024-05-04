@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.21.0](https://github.com/k1LoW/grpcstub/compare/v0.20.0...v0.21.0) - 2024-05-04
+### Breaking Changes 🛠
+- Use protoresolv by @k1LoW in https://github.com/k1LoW/grpcstub/pull/85
+- Second argument of the NewServer function to allow intelligent FileDescripter resolution. by @k1LoW in https://github.com/k1LoW/grpcstub/pull/87
+
 ## [v0.20.0](https://github.com/k1LoW/grpcstub/compare/v0.19.0...v0.20.0) - 2024-05-04
 ### Breaking Changes 🛠
 - Use bufresolv by @k1LoW in https://github.com/k1LoW/grpcstub/pull/83
