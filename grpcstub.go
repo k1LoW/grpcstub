@@ -949,14 +949,14 @@ func (s *Server) resolveProtos(ctx context.Context, c *config) error {
 		return err
 	}
 	var bufresolvOpts []bufresolv.Option
-	if c.bufDir != "" {
-		bufresolvOpts = append(bufresolvOpts, bufresolv.BufDir(c.bufDir))
+	for _, dir := range c.bufDirs {
+		bufresolvOpts = append(bufresolvOpts, bufresolv.BufDir(dir))
 	}
-	if c.bufConfig != "" {
-		bufresolvOpts = append(bufresolvOpts, bufresolv.BufConfig(c.bufConfig))
+	for _, config := range c.bufConfigs {
+		bufresolvOpts = append(bufresolvOpts, bufresolv.BufConfig(config))
 	}
-	if c.bufLock != "" {
-		bufresolvOpts = append(bufresolvOpts, bufresolv.BufLock(c.bufLock))
+	for _, lock := range c.bufLocks {
+		bufresolvOpts = append(bufresolvOpts, bufresolv.BufLock(lock))
 	}
 	bufresolvOpts = append(bufresolvOpts, bufresolv.BufModule(c.bufModules...))
 	br, err := bufresolv.New(bufresolvOpts...)
