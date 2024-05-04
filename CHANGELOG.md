@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.22.0](https://github.com/k1LoW/grpcstub/compare/v0.21.0...v0.22.0) - 2024-05-04
+### Breaking Changes 🛠
+- Organize options by @k1LoW in https://github.com/k1LoW/grpcstub/pull/89
+
 ## [v0.21.0](https://github.com/k1LoW/grpcstub/compare/v0.20.0...v0.21.0) - 2024-05-04
 ### Breaking Changes 🛠
 - Use protoresolv by @k1LoW in https://github.com/k1LoW/grpcstub/pull/85
