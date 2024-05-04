@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -19,6 +19,7 @@ import (
 	"github.com/bufbuild/protocompile"
 	"github.com/bufbuild/protocompile/linker"
 	"github.com/k1LoW/bufresolv"
+	"github.com/k1LoW/protoresolv"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
@@ -926,9 +927,7 @@ func methodMatchFunc(method string) matchFunc {
 }
 
 func (s *Server) resolveProtos(ctx context.Context, c *config) error {
-	importPaths := c.importPaths
-	protos := c.protos
-	importPaths, protos, err := resolvePaths(importPaths, protos...)
+	pr, err := protoresolv.New(c.importPaths, protoresolv.Proto(c.protos...))
 	if err != nil {
 		return err
 	}
@@ -949,13 +948,10 @@ func (s *Server) resolveProtos(ctx context.Context, c *config) error {
 	}
 	comp := protocompile.Compiler{
 		Resolver: protocompile.WithStandardImports(protocompile.CompositeResolver([]protocompile.Resolver{
-			&protocompile.SourceResolver{
-				ImportPaths: importPaths,
-			},
-			br,
+			pr, br,
 		})),
 	}
-	protos = unique(append(protos, br.Paths()...))
+	protos := unique(slices.Concat(pr.Paths(), br.Paths()))
 	fds, err := comp.Compile(ctx, protos...)
 	if err != nil {
 		return err
@@ -1013,37 +1009,6 @@ func rangeTopLevelDescriptors(fd protoreflect.FileDescriptor, f func(protoreflec
 	for i := sds.Len() - 1; i >= 0; i-- {
 		f(sds.Get(i))
 	}
-}
-
-func resolvePaths(importPaths []string, protos ...string) ([]string, []string, error) {
-	const sep = string(filepath.Separator)
-	if len(importPaths) == 0 {
-		return importPaths, protos, nil
-	}
-	importPaths = unique(importPaths)
-	var resolvedIPaths []string
-	for _, p := range importPaths {
-		abs, err := filepath.Abs(p)
-		if err != nil {
-			return nil, nil, err
-		}
-		resolvedIPaths = append(resolvedIPaths, abs)
-	}
-	resolvedIPaths = unique(resolvedIPaths)
-	var resolvedProtos []string
-	for _, p := range protos {
-		abs, err := filepath.Abs(p)
-		if err != nil {
-			return nil, nil, err
-		}
-		for _, ip := range resolvedIPaths {
-			if strings.HasPrefix(abs, ip+sep) {
-				resolvedProtos = append(resolvedProtos, strings.TrimPrefix(abs, ip+sep))
-			}
-		}
-	}
-	resolvedProtos = unique(resolvedProtos)
-	return resolvedIPaths, resolvedProtos, nil
 }
 
 func splitMethodFullName(mn protoreflect.FullName) (string, string) {
