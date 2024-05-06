@@ -16,8 +16,8 @@ github.com/josharian/mapfs v0.0.0-20210615234106-095c008854e6 h1:c+ctPFdISggaSNC
 github.com/josharian/mapfs v0.0.0-20210615234106-095c008854e6/go.mod h1:Rv/momJI8DgrWnBZip+SgagpcgORIZQE5SERlxNb8LY=
 github.com/josharian/txtarfs v0.0.0-20210615234325-77aca6df5bca h1:a8xeK4GsWLE4LYo5VI4u1Cn7ZvT1NtXouXR3DdKLB8Q=
 github.com/josharian/txtarfs v0.0.0-20210615234325-77aca6df5bca/go.mod h1:UbC32ft9G/jG+sZI8wLbIBNIrYr7vp/yqMDa9SxVBNA=
-github.com/k1LoW/bufresolv v0.6.1 h1:IQU3cNsa00pWXLqUzU5PD1vdGQdzq3W/gaO18KCevAs=
-github.com/k1LoW/bufresolv v0.6.1/go.mod h1:56aalZU3G/tpBtQKS4pOCv2zMTucX3PrJkasURwFVxg=
+github.com/k1LoW/bufresolv v0.6.3 h1:q8Ds9t8qZJb5/VW9Vnvtgd0/74YYYcsM8Ao+50kb9NI=
+github.com/k1LoW/bufresolv v0.6.3/go.mod h1:urty3DXACF9PENrq7UhlB/mddN5UemglUIW6/cQqz2c=
 github.com/k1LoW/protoresolv v0.1.0 h1:5Or1g0EB8o6VSJSxUk8WEVoYZFzGQQMlkk8ezb8/mdA=
 github.com/k1LoW/protoresolv v0.1.0/go.mod h1:J3RVl3l/fNgwEYEhwTsCCwxXYsvTIAYU69jUXFQHEbQ=
 github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=
