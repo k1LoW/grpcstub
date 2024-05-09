@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.22.1](https://github.com/k1LoW/grpcstub/compare/v0.22.0...v0.22.1) - 2024-05-06
+### Other Changes
+- chore(deps): bump github.com/k1LoW/bufresolv from 0.6.1 to 0.6.3 in the dependencies group by @dependabot in https://github.com/k1LoW/grpcstub/pull/90
+
 ## [v0.22.0](https://github.com/k1LoW/grpcstub/compare/v0.21.0...v0.22.0) - 2024-05-04
 ### Breaking Changes 🛠
 - Organize options by @k1LoW in https://github.com/k1LoW/grpcstub/pull/89
