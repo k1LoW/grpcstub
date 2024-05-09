@@ -8,6 +8,7 @@ package hello;
 
 service GrpcTestService {
 	rpc Hello (HelloRequest) returns (HelloResponse);
+  rpc HelloFields (HelloFieldsRequest) returns (HelloFieldsResponse);
 }
 
 message HelloRequest {
@@ -28,4 +29,12 @@ message HelloResponse {
   optional string world = 4;
 
   google.protobuf.Timestamp create_time = 5;
+}
+
+message HelloFieldsRequest {
+  bytes field_bytes = 1;
+}
+
+message HelloFieldsResponse {
+  bytes field_bytes = 1;
 }

@@ -682,6 +682,27 @@ func TestResponseAny(t *testing.T) {
 	}
 }
 
+func TestResponseAnyFields(t *testing.T) {
+	ctx := context.Background()
+	ts := NewServer(t, "testdata/hello.proto")
+	t.Cleanup(func() {
+		ts.Close()
+	})
+	ts.Service("hello.GrpcTestService").Method("HelloFields").ResponseString(`{"field_bytes": "aGVsbG8="}`) // Base64 encoding to pass bytes type
+
+	client := hello.NewGrpcTestServiceClient(ts.Conn())
+	res, err := client.HelloFields(ctx, &hello.HelloFieldsRequest{
+		FieldBytes: []byte("hello"),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := res.FieldBytes
+	if want := "hello"; string(got) != want {
+		t.Errorf("got %v\nwant %v", got, want)
+	}
+}
+
 func TestBufProtoRegistry(t *testing.T) {
 	t.Run("Use buf.lock", func(t *testing.T) {
 		ts := NewServer(t, "testdata/bsr/protobuf/pinger/pinger.proto", BufLock("testdata/bsr/protobuf/buf.lock"))
