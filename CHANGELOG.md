@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.22.2](https://github.com/k1LoW/grpcstub/compare/v0.22.1...v0.22.2) - 2024-05-20
+### Other Changes
+- chore(deps): bump google.golang.org/protobuf from 1.34.0 to 1.34.1 in the dependencies group by @dependabot in https://github.com/k1LoW/grpcstub/pull/93
+- chore(deps): bump google.golang.org/grpc from 1.63.2 to 1.64.0 in the dependencies group by @dependabot in https://github.com/k1LoW/grpcstub/pull/94
+- Add test for connectrpc by @k1LoW in https://github.com/k1LoW/grpcstub/pull/95
+
 ## [v0.22.1](https://github.com/k1LoW/grpcstub/compare/v0.22.0...v0.22.1) - 2024-05-06
 ### Other Changes
 - chore(deps): bump github.com/k1LoW/bufresolv from 0.6.1 to 0.6.3 in the dependencies group by @dependabot in https://github.com/k1LoW/grpcstub/pull/90
