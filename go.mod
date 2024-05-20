@@ -14,6 +14,7 @@ require (
 	github.com/k1LoW/protoresolv v0.1.0
 	github.com/minio/pkg v1.7.5
 	github.com/tenntenn/golden v0.5.4
+	golang.org/x/net v0.24.0
 	google.golang.org/grpc v1.64.0
 	google.golang.org/protobuf v1.34.1
 )
@@ -21,7 +22,6 @@ require (
 require (
 	github.com/josharian/mapfs v0.0.0-20210615234106-095c008854e6 // indirect
 	github.com/josharian/txtarfs v0.0.0-20210615234325-77aca6df5bca // indirect
-	golang.org/x/net v0.24.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.19.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
