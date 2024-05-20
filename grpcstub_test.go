@@ -2,17 +2,23 @@ package grpcstub
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
+	"net/http"
 	"os"
 	"strings"
 	"testing"
 	"time"
 
+	"connectrpc.com/connect"
 	"github.com/google/go-cmp/cmp"
 	"github.com/jhump/protoreflect/v2/grpcreflect"
+	"github.com/k1LoW/grpcstub/testdata/bsr/protobuf/gen/go/pinger"
+	"github.com/k1LoW/grpcstub/testdata/bsr/protobuf/gen/go/pinger/pingerconnect"
 	"github.com/k1LoW/grpcstub/testdata/hello"
 	"github.com/k1LoW/grpcstub/testdata/routeguide"
 	"github.com/tenntenn/golden"
+	"golang.org/x/net/http2"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
@@ -733,4 +739,43 @@ func TestBufProtoRegistry(t *testing.T) {
 			"message": "hello",
 		})
 	})
+}
+
+func TestWithConnectClient(t *testing.T) {
+	ctx := context.Background()
+	cacert, err := os.ReadFile("testdata/cacert.pem")
+	if err != nil {
+		t.Fatal(err)
+	}
+	cert, err := os.ReadFile("testdata/cert.pem")
+	if err != nil {
+		t.Fatal(err)
+	}
+	key, err := os.ReadFile("testdata/key.pem")
+	if err != nil {
+		t.Fatal(err)
+	}
+	ts := NewTLSServer(t, "testdata/bsr/protobuf", cacert, cert, key)
+	ts.Service("pinger.PingerService").Method("Ping").Response(&pinger.PingResponse{
+		Message: "hello",
+	})
+	t.Cleanup(func() {
+		ts.Close()
+	})
+	u := fmt.Sprintf("https://%s", ts.Addr())
+	httpClient := &http.Client{
+		Transport: &http2.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, //nolint: gosec
+		},
+	}
+	client := pingerconnect.NewPingerServiceClient(httpClient, u, connect.WithGRPC())
+	res, err := client.Ping(ctx, connect.NewRequest(&pinger.PingRequest{
+		Message: "hello",
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := "hello"; res.Msg.GetMessage() != want {
+		t.Errorf("got %v\nwant %v", res.Msg.GetMessage(), want)
+	}
 }

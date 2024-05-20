@@ -18,6 +18,7 @@ testclient:
 	mkdir -p testdata/hello
 	cd testdata/ && protoc --go_out=routeguide --go_opt=paths=source_relative --go-grpc_out=routeguide --go-grpc_opt=paths=source_relative route_guide.proto
 	cd testdata/ && protoc --go_out=hello --go_opt=paths=source_relative --go-grpc_out=hello --go-grpc_opt=paths=source_relative hello.proto
+	cd testdata/bsr/protobuf && buf mod update && buf generate
 
 cert:
 	rm -f testdata/*.pem testdata/*.srl
