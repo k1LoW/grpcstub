@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.22.3](https://github.com/k1LoW/grpcstub/compare/v0.22.2...v0.22.3) - 2024-06-17
+### Other Changes
+- chore(deps): bump golang.org/x/net from 0.24.0 to 0.25.0 in the dependencies group by @dependabot in https://github.com/k1LoW/grpcstub/pull/96
+- chore(deps): bump the dependencies group with 3 updates by @dependabot in https://github.com/k1LoW/grpcstub/pull/98
+- chore(deps): bump the dependencies group across 1 directory with 3 updates by @dependabot in https://github.com/k1LoW/grpcstub/pull/101
+
 ## [v0.22.2](https://github.com/k1LoW/grpcstub/compare/v0.22.1...v0.22.2) - 2024-05-20
 ### Other Changes
 - chore(deps): bump google.golang.org/protobuf from 1.34.0 to 1.34.1 in the dependencies group by @dependabot in https://github.com/k1LoW/grpcstub/pull/93
