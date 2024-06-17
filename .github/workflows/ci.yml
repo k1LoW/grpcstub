@@ -21,6 +21,9 @@ jobs:
         with:
           go-version-file: go.mod
 
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+
       - name: Setup
         run: make testclient
 
