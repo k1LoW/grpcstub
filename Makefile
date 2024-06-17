@@ -12,8 +12,12 @@ depsdev:
 	go install github.com/Songmu/ghch/cmd/ghch@latest
 	go install github.com/Songmu/gocredits/cmd/gocredits@latest
 	go install github.com/securego/gosec/v2/cmd/gosec@latest
+	go install github.com/bufbuild/buf/cmd/buf@latest
+	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+	go install connectrpc.com/connect/cmd/protoc-gen-connect-go@latest
 
-testclient:
+testclient: depsdev
 	mkdir -p testdata/routeguide
 	mkdir -p testdata/hello
 	cd testdata/ && protoc --go_out=routeguide --go_opt=paths=source_relative --go-grpc_out=routeguide --go-grpc_opt=paths=source_relative route_guide.proto

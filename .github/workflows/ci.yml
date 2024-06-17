@@ -21,6 +21,9 @@ jobs:
         with:
           go-version-file: go.mod
 
+      - name: Setup
+        run: make testclient
+
       - name: Run lint
         uses: reviewdog/action-golangci-lint@v2
         with:
