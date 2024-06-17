@@ -275,7 +275,7 @@ func (s *Server) Conn() *grpc.ClientConn {
 		}
 		creds = credentials.NewTLS(s.tlsc)
 	}
-	conn, err := grpc.Dial(
+	conn, err := grpc.Dial( //nolint:staticcheck
 		s.listener.Addr().String(),
 		grpc.WithTransportCredentials(creds),
 	)
