@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.22.4](https://github.com/k1LoW/grpcstub/compare/v0.22.3...v0.22.4) - 2024-06-17
+### New Features 🎉
+- Support buf v2 configration files. by @k1LoW in https://github.com/k1LoW/grpcstub/pull/102
+
 ## [v0.22.3](https://github.com/k1LoW/grpcstub/compare/v0.22.2...v0.22.3) - 2024-06-17
 ### Other Changes
 - chore(deps): bump golang.org/x/net from 0.24.0 to 0.25.0 in the dependencies group by @dependabot in https://github.com/k1LoW/grpcstub/pull/96
