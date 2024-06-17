@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.22.5](https://github.com/k1LoW/grpcstub/compare/v0.22.4...v0.22.5) - 2024-06-17
+### Fix bug 🐛
+- Update bufresolv by @k1LoW in https://github.com/k1LoW/grpcstub/pull/104
+
 ## [v0.22.4](https://github.com/k1LoW/grpcstub/compare/v0.22.3...v0.22.4) - 2024-06-17
 ### New Features 🎉
 - Support buf v2 configration files. by @k1LoW in https://github.com/k1LoW/grpcstub/pull/102
