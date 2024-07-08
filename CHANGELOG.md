@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.22.7](https://github.com/k1LoW/grpcstub/compare/v0.22.6...v0.22.7) - 2024-07-08
+### Other Changes
+- chore(deps): bump the dependencies group with 2 updates by @dependabot in https://github.com/k1LoW/grpcstub/pull/108
+
 ## [v0.22.6](https://github.com/k1LoW/grpcstub/compare/v0.22.5...v0.22.6) - 2024-06-20
 ### Fix bug 🐛
 - Update bufresolv by @k1LoW in https://github.com/k1LoW/grpcstub/pull/106
