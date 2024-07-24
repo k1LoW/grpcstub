@@ -71,24 +71,24 @@ type Request struct {
 	Message Message
 }
 
-func (r Request) String() string {
+func (req *Request) String() string {
 	var s []string
-	s = append(s, fmt.Sprintf("%s/%s", r.Service, r.Method))
-	if len(r.Headers) > 0 {
+	s = append(s, fmt.Sprintf("%s/%s", req.Service, req.Method))
+	if len(req.Headers) > 0 {
 		var keys []string
-		for k := range r.Headers {
+		for k := range req.Headers {
 			keys = append(keys, k)
 		}
 		sort.SliceStable(keys, func(i, j int) bool {
 			return keys[i] < keys[j]
 		})
 		for _, k := range keys {
-			s = append(s, fmt.Sprintf(`%s: %s`, k, strings.Join(r.Headers.Get(k), ", ")))
+			s = append(s, fmt.Sprintf(`%s: %s`, k, strings.Join(req.Headers.Get(k), ", ")))
 		}
 	}
 	s = append(s, "")
-	if r.Message != nil {
-		b, _ := json.MarshalIndent(r.Message, "", "  ")
+	if req.Message != nil {
+		b, _ := json.MarshalIndent(req.Message, "", "  ")
 		s = append(s, string(b))
 	}
 	return strings.Join(s, "\n") + "\n"
@@ -146,8 +146,8 @@ type matcher struct {
 	mu         sync.RWMutex
 }
 
-type matchFunc func(r *Request) bool
-type handlerFunc func(r *Request, md protoreflect.MethodDescriptor) *Response
+type matchFunc func(req *Request) bool
+type handlerFunc func(req *Request, md protoreflect.MethodDescriptor) *Response
 
 // NewServer returns a new server with registered *grpc.Server
 // protopath is a path of .proto files, import path directory or buf directory.
@@ -317,8 +317,8 @@ func (s *Server) startServer() {
 	}()
 }
 
-// Match create request matcher with matchFunc (func(r *grpcstub.Request) bool).
-func (s *Server) Match(fn func(r *Request) bool) *matcher {
+// Match create request matcher with matchFunc (func(req *grpcstub.Request) bool).
+func (s *Server) Match(fn func(req *Request) bool) *matcher {
 	m := &matcher{
 		matchFuncs: []matchFunc{fn},
 		t:          s.t,
@@ -329,8 +329,8 @@ func (s *Server) Match(fn func(r *Request) bool) *matcher {
 	return m
 }
 
-// Match append matchFunc (func(r *grpcstub.Request) bool) to request matcher.
-func (m *matcher) Match(fn func(r *Request) bool) *matcher {
+// Match append matchFunc (func(req *grpcstub.Request) bool) to request matcher.
+func (m *matcher) Match(fn func(req *Request) bool) *matcher {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.matchFuncs = append(m.matchFuncs, fn)
@@ -404,12 +404,12 @@ func (m *matcher) Methodf(format string, a ...any) *matcher {
 // Header append handler which append header to response.
 func (m *matcher) Header(key, value string) *matcher {
 	prev := m.handler
-	m.handler = func(r *Request, md protoreflect.MethodDescriptor) *Response {
+	m.handler = func(req *Request, md protoreflect.MethodDescriptor) *Response {
 		var res *Response
 		if prev == nil {
 			res = NewResponse()
 		} else {
-			res = prev(r, md)
+			res = prev(req, md)
 		}
 		res.Headers.Append(key, value)
 		return res
@@ -420,12 +420,12 @@ func (m *matcher) Header(key, value string) *matcher {
 // Trailer append handler which append trailer to response.
 func (m *matcher) Trailer(key, value string) *matcher {
 	prev := m.handler
-	m.handler = func(r *Request, md protoreflect.MethodDescriptor) *Response {
+	m.handler = func(req *Request, md protoreflect.MethodDescriptor) *Response {
 		var res *Response
 		if prev == nil {
 			res = NewResponse()
 		} else {
-			res = prev(r, md)
+			res = prev(req, md)
 		}
 		res.Trailers.Append(key, value)
 		return res
@@ -434,9 +434,9 @@ func (m *matcher) Trailer(key, value string) *matcher {
 }
 
 // Handler set handler
-func (m *matcher) Handler(fn func(r *Request) *Response) {
-	m.handler = func(r *Request, md protoreflect.MethodDescriptor) *Response {
-		return fn(r)
+func (m *matcher) Handler(fn func(req *Request) *Response) {
+	m.handler = func(req *Request, md protoreflect.MethodDescriptor) *Response {
+		return fn(req)
 	}
 }
 
@@ -456,12 +456,12 @@ func (m *matcher) Response(message any) *matcher {
 		}
 	}
 	prev := m.handler
-	m.handler = func(r *Request, md protoreflect.MethodDescriptor) *Response {
+	m.handler = func(req *Request, md protoreflect.MethodDescriptor) *Response {
 		var res *Response
 		if prev == nil {
 			res = NewResponse()
 		} else {
-			res = prev(r, md)
+			res = prev(req, md)
 		}
 		res.Messages = append(res.Messages, mm)
 		return res
@@ -484,12 +484,12 @@ func (m *matcher) ResponseStringf(format string, a ...any) *matcher {
 // Status set handler which return response with status
 func (m *matcher) Status(s *status.Status) *matcher {
 	prev := m.handler
-	m.handler = func(r *Request, md protoreflect.MethodDescriptor) *Response {
+	m.handler = func(req *Request, md protoreflect.MethodDescriptor) *Response {
 		var res *Response
 		if prev == nil {
 			res = NewResponse()
 		} else {
-			res = prev(r, md)
+			res = prev(req, md)
 		}
 		res.Status = s
 		return res
@@ -616,24 +616,24 @@ func (s *Server) createUnaryHandler(md protoreflect.MethodDescriptor) func(srv a
 			return nil, err
 		}
 
-		r := newRequest(md, m)
+		req := newRequest(md, m)
 		h, ok := metadata.FromIncomingContext(ctx)
 		if ok {
-			r.Headers = h
+			req.Headers = h
 		}
 
 		var mes *dynamicpb.Message
 		for _, m := range s.matchers {
-			if !m.matchRequest(r) {
+			if !m.matchRequest(req) {
 				continue
 			}
 			s.mu.Lock()
-			s.requests = append(s.requests, r)
+			s.requests = append(s.requests, req)
 			s.mu.Unlock()
 			m.mu.Lock()
-			m.requests = append(m.requests, r)
+			m.requests = append(m.requests, req)
 			m.mu.Unlock()
-			res := m.handler(r, md)
+			res := m.handler(req, md)
 			for k, v := range res.Headers {
 				for _, vv := range v {
 					if err := grpc.SetHeader(ctx, metadata.Pairs(k, vv)); err != nil {
@@ -665,7 +665,7 @@ func (s *Server) createUnaryHandler(md protoreflect.MethodDescriptor) func(srv a
 		}
 
 		s.mu.Lock()
-		s.unmatchedRequests = append(s.unmatchedRequests, r)
+		s.unmatchedRequests = append(s.unmatchedRequests, req)
 		s.mu.Unlock()
 		return mes, status.Error(codes.NotFound, codes.NotFound.String())
 	}
@@ -926,20 +926,20 @@ func (m *matcher) matchRequest(rs ...*Request) bool {
 }
 
 func serviceMatchFunc(service string) matchFunc {
-	return func(r *Request) bool {
-		return r.Service == strings.TrimPrefix(service, "/")
+	return func(req *Request) bool {
+		return req.Service == strings.TrimPrefix(service, "/")
 	}
 }
 
 func methodMatchFunc(method string) matchFunc {
-	return func(r *Request) bool {
+	return func(req *Request) bool {
 		if !strings.Contains(method, "/") {
-			return r.Method == method
+			return req.Method == method
 		}
 		splitted := strings.Split(strings.TrimPrefix(method, "/"), "/")
 		s := strings.Join(splitted[:len(splitted)-1], "/")
 		m := splitted[len(splitted)-1]
-		return r.Service == s && r.Method == m
+		return req.Service == s && req.Method == m
 	}
 }
 

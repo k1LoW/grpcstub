@@ -44,8 +44,8 @@ func TestServerMatch(t *testing.T) {
 	t.Cleanup(func() {
 		ts.Close()
 	})
-	ts.Match(func(r *Request) bool {
-		return r.Method == "GetFeature"
+	ts.Match(func(req *Request) bool {
+		return req.Method == "GetFeature"
 	}).Response(map[string]any{"name": "hello"})
 
 	client := routeguide.NewRouteGuideClient(ts.Conn())
@@ -68,8 +68,8 @@ func TestMatcherMatch(t *testing.T) {
 	t.Cleanup(func() {
 		ts.Close()
 	})
-	ts.Service("routeguide.RouteGuide").Match(func(r *Request) bool {
-		return r.Method == "GetFeature"
+	ts.Service("routeguide.RouteGuide").Match(func(req *Request) bool {
+		return req.Method == "GetFeature"
 	}).Response(map[string]any{"name": "hello"})
 
 	client := routeguide.NewRouteGuideClient(ts.Conn())

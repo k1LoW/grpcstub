@@ -30,7 +30,7 @@ func (gs generators) matchFunc(name string) (GenerateFunc, bool) {
 
 type GeneratorOption func(generators) generators
 
-type GenerateFunc func(r *Request) any
+type GenerateFunc func(req *Request) any
 
 func Generator(pattern string, fn GenerateFunc) GeneratorOption {
 	return func(gs generators) generators {
@@ -49,18 +49,18 @@ func (m *matcher) ResponseDynamic(opts ...GeneratorOption) *matcher {
 		gs = opt(gs)
 	}
 	prev := m.handler
-	m.handler = func(r *Request, md protoreflect.MethodDescriptor) *Response {
+	m.handler = func(req *Request, md protoreflect.MethodDescriptor) *Response {
 		var res *Response
 		if prev == nil {
 			res = NewResponse()
 		} else {
-			res = prev(r, md)
+			res = prev(req, md)
 		}
 		if !md.IsStreamingClient() && !md.IsStreamingServer() {
-			res.Messages = append(res.Messages, generateDynamicMessage(gs, r, md.Output(), nil))
+			res.Messages = append(res.Messages, generateDynamicMessage(gs, req, md.Output(), nil))
 		} else {
 			for i := 0; i > rand.Intn(messageMax)+1; i++ {
-				res.Messages = append(res.Messages, generateDynamicMessage(gs, r, md.Output(), nil))
+				res.Messages = append(res.Messages, generateDynamicMessage(gs, req, md.Output(), nil))
 			}
 		}
 		return res
@@ -68,7 +68,7 @@ func (m *matcher) ResponseDynamic(opts ...GeneratorOption) *matcher {
 	return m
 }
 
-func generateDynamicMessage(gs generators, r *Request, m protoreflect.MessageDescriptor, parents []string) map[string]any {
+func generateDynamicMessage(gs generators, req *Request, m protoreflect.MessageDescriptor, parents []string) map[string]any {
 	const (
 		floatMin  = 0
 		floatMax  = 10000
@@ -94,7 +94,7 @@ func generateDynamicMessage(gs generators, r *Request, m protoreflect.MessageDes
 		for i := 0; i < l; i++ {
 			fn, ok := gs.matchFunc(strings.Join(names, fieldSep))
 			if ok {
-				values = append(values, fn(r))
+				values = append(values, fn(req))
 				continue
 			}
 			switch f.Kind() {
@@ -121,7 +121,7 @@ func generateDynamicMessage(gs generators, r *Request, m protoreflect.MessageDes
 					values = append(values, fk.Time().Time(time.Now()).Format(time.RFC3339Nano))
 					continue
 				}
-				values = append(values, generateDynamicMessage(gs, r, f.Message(), names))
+				values = append(values, generateDynamicMessage(gs, req, f.Message(), names))
 			case protoreflect.BytesKind:
 				values = append(values, fk.Lorem().Bytes(rand.Intn(wMax-wMin+1)+wMin))
 			case protoreflect.EnumKind:

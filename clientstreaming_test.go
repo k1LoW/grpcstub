@@ -55,7 +55,7 @@ func TestClientStreamingUnmatched(t *testing.T) {
 	t.Cleanup(func() {
 		ts.Close()
 	})
-	ts.Method("RecordRoute").Match(func(r *Request) bool {
+	ts.Method("RecordRoute").Match(func(req *Request) bool {
 		return false
 	}).Response(map[string]any{"point_count": 2, "feature_count": 2, "distance": 10, "elapsed_time": 345})
 

@@ -61,7 +61,7 @@ func TestUnaryUnmatched(t *testing.T) {
 	t.Cleanup(func() {
 		ts.Close()
 	})
-	ts.Method("GetFeature").Match(func(r *Request) bool {
+	ts.Method("GetFeature").Match(func(req *Request) bool {
 		return false
 	}).Response(map[string]any{"name": "hello", "location": map[string]any{"latitude": 10, "longitude": 13}})
 

@@ -19,8 +19,8 @@ func TestBidiStreaming(t *testing.T) {
 	t.Cleanup(func() {
 		ts.Close()
 	})
-	ts.Method("RouteChat").Match(func(r *Request) bool {
-		m, ok := r.Message["message"]
+	ts.Method("RouteChat").Match(func(req *Request) bool {
+		m, ok := req.Message["message"]
 		if !ok {
 			return false
 		}
@@ -29,9 +29,9 @@ func TestBidiStreaming(t *testing.T) {
 		Response(map[string]any{"location": nil, "message": "hello from server[0]"})
 	ts.Method("RouteChat").
 		Header("hello", "header").
-		Handler(func(r *Request) *Response {
+		Handler(func(req *Request) *Response {
 			res := NewResponse()
-			m, ok := r.Message["message"]
+			m, ok := req.Message["message"]
 			if !ok {
 				res.Status = status.New(codes.Unknown, codes.Unknown.String())
 				return res
@@ -101,7 +101,7 @@ func TestBidiStreamingUnmatched(t *testing.T) {
 	t.Cleanup(func() {
 		ts.Close()
 	})
-	ts.Method("RouteChat").Match(func(r *Request) bool {
+	ts.Method("RouteChat").Match(func(req *Request) bool {
 		return false
 	}).Header("hello", "header").
 		Response(map[string]any{"location": nil, "message": "hello from server[0]"})

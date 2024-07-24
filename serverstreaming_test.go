@@ -72,7 +72,7 @@ func TestServerStreamingUnmatched(t *testing.T) {
 	t.Cleanup(func() {
 		ts.Close()
 	})
-	ts.Method("ListFeatures").Match(func(r *Request) bool {
+	ts.Method("ListFeatures").Match(func(req *Request) bool {
 		return false
 	}).Response(map[string]any{"name": "hello"}).Response(map[string]any{"name": "world"})
 
