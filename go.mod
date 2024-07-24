@@ -1,9 +1,9 @@
 module github.com/k1LoW/grpcstub
 
-go 1.22.2
+go 1.22.5
 
 require (
-	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.34.2-20240508200655-46a4cf4ba109.2
+	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.34.2-20240717164558-a6c49f84cc0f.2
 	connectrpc.com/connect v1.16.2
 	github.com/bmatcuk/doublestar/v4 v4.6.1
 	github.com/bufbuild/protocompile v0.14.0
@@ -26,6 +26,6 @@ require (
 	golang.org/x/sys v0.22.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240610135401-a8a62080eff3 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240723171418-e6d459c13d2a // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
