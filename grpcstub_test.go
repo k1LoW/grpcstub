@@ -779,3 +779,40 @@ func TestWithConnectClient(t *testing.T) {
 		t.Errorf("got %v\nwant %v", res.Msg.GetMessage(), want)
 	}
 }
+
+func TestUnmarshalProtoMessage(t *testing.T) {
+	ctx := context.Background()
+	ts := NewServer(t, "testdata/route_guide.proto")
+	t.Cleanup(func() {
+		ts.Close()
+	})
+	ts.Match(func(req *Request) bool {
+		return req.Method == "GetFeature"
+	}).Handler(func(req *Request) *Response {
+		m := &routeguide.Point{}
+		if err := UnmarshalProtoMessage(req.Message, m); err != nil {
+			t.Fatal(err)
+		}
+		if m.Latitude != 10 || m.Longitude != 13 {
+			t.Errorf("got %v\nwant %v", m, &routeguide.Point{Latitude: 10, Longitude: 13})
+		}
+		return &Response{
+			Messages: []Message{
+				{"name": "hello"},
+			},
+		}
+	})
+
+	client := routeguide.NewRouteGuideClient(ts.Conn())
+	res, err := client.GetFeature(ctx, &routeguide.Point{
+		Latitude:  10,
+		Longitude: 13,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := res.Name
+	if want := "hello"; got != want {
+		t.Errorf("got %v\nwant %v", got, want)
+	}
+}

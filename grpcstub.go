@@ -607,15 +607,10 @@ func (s *Server) createUnaryHandler(md protoreflect.MethodDescriptor) func(srv a
 		if err := dec(in); err != nil {
 			return nil, err
 		}
-		b, err := protojson.MarshalOptions{UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(in)
+		m, err := MarshalProtoMessage(in)
 		if err != nil {
 			return nil, err
 		}
-		m := Message{}
-		if err := json.Unmarshal(b, &m); err != nil {
-			return nil, err
-		}
-
 		req := newRequest(md, m)
 		h, ok := metadata.FromIncomingContext(ctx)
 		if ok {
@@ -653,11 +648,7 @@ func (s *Server) createUnaryHandler(md protoreflect.MethodDescriptor) func(srv a
 			}
 			mes = dynamicpb.NewMessage(md.Output())
 			if len(res.Messages) > 0 {
-				b, err := json.Marshal(res.Messages[0])
-				if err != nil {
-					return nil, err
-				}
-				if err := (protojson.UnmarshalOptions{}).Unmarshal(b, mes); err != nil {
+				if err := UnmarshalProtoMessage(res.Messages[0], mes); err != nil {
 					return nil, err
 				}
 			}
@@ -692,12 +683,8 @@ func (s *Server) createServerStreamingHandler(md protoreflect.MethodDescriptor) 
 		if err := stream.RecvMsg(in); err != nil {
 			return err
 		}
-		b, err := protojson.MarshalOptions{UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(in)
+		m, err := MarshalProtoMessage(in)
 		if err != nil {
-			return err
-		}
-		m := Message{}
-		if err := json.Unmarshal(b, &m); err != nil {
 			return err
 		}
 		r := newRequest(md, m)
@@ -734,11 +721,7 @@ func (s *Server) createServerStreamingHandler(md protoreflect.MethodDescriptor) 
 			if len(res.Messages) > 0 {
 				for _, resm := range res.Messages {
 					mes := dynamicpb.NewMessage(md.Output())
-					b, err := json.Marshal(resm)
-					if err != nil {
-						return err
-					}
-					if err := (protojson.UnmarshalOptions{}).Unmarshal(b, mes); err != nil {
+					if err := UnmarshalProtoMessage(resm, mes); err != nil {
 						return err
 					}
 					if err := stream.SendMsg(mes); err != nil {
@@ -762,12 +745,8 @@ func (s *Server) createClientStreamingHandler(md protoreflect.MethodDescriptor) 
 			in := dynamicpb.NewMessage(md.Input())
 			err := stream.RecvMsg(in)
 			if err == nil {
-				b, err := protojson.MarshalOptions{UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(in)
+				m, err := MarshalProtoMessage(in)
 				if err != nil {
-					return err
-				}
-				m := Message{}
-				if err := json.Unmarshal(b, &m); err != nil {
 					return err
 				}
 				r := newRequest(md, m)
@@ -804,11 +783,7 @@ func (s *Server) createClientStreamingHandler(md protoreflect.MethodDescriptor) 
 				}
 				mes = dynamicpb.NewMessage(md.Output())
 				if len(res.Messages) > 0 {
-					b, err := json.Marshal(res.Messages[0])
-					if err != nil {
-						return err
-					}
-					if err := (protojson.UnmarshalOptions{}).Unmarshal(b, mes); err != nil {
+					if err := UnmarshalProtoMessage(res.Messages[0], mes); err != nil {
 						return err
 					}
 				}
@@ -847,12 +822,8 @@ func (s *Server) createBidiStreamingHandler(md protoreflect.MethodDescriptor) fu
 			if err != nil {
 				return err
 			}
-			b, err := protojson.MarshalOptions{UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(in)
+			m, err := MarshalProtoMessage(in)
 			if err != nil {
-				return err
-			}
-			m := Message{}
-			if err := json.Unmarshal(b, &m); err != nil {
 				return err
 			}
 			r := newRequest(md, m)
@@ -892,11 +863,7 @@ func (s *Server) createBidiStreamingHandler(md protoreflect.MethodDescriptor) fu
 				if len(res.Messages) > 0 {
 					for _, resm := range res.Messages {
 						mes := dynamicpb.NewMessage(md.Output())
-						b, err := json.Marshal(resm)
-						if err != nil {
-							return err
-						}
-						if err := (protojson.UnmarshalOptions{}).Unmarshal(b, mes); err != nil {
+						if err := UnmarshalProtoMessage(resm, mes); err != nil {
 							return err
 						}
 						if err := stream.SendMsg(mes); err != nil {
@@ -912,6 +879,31 @@ func (s *Server) createBidiStreamingHandler(md protoreflect.MethodDescriptor) fu
 			return status.Error(codes.NotFound, codes.NotFound.String())
 		}
 	}
+}
+
+// MarshalProtoMessage marshals [proto.Message] to [Message].
+func MarshalProtoMessage(pm protoreflect.ProtoMessage) (Message, error) {
+	b, err := protojson.MarshalOptions{UseProtoNames: true, UseEnumNumbers: true, EmitUnpopulated: true}.Marshal(pm)
+	if err != nil {
+		return nil, err
+	}
+	m := Message{}
+	if err := json.Unmarshal(b, &m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// UnmarshalProtoMessage unmarshals [Message] to [proto.Message].
+func UnmarshalProtoMessage(m Message, pm protoreflect.ProtoMessage) error {
+	b, err := json.Marshal(m)
+	if err != nil {
+		return err
+	}
+	if err := (protojson.UnmarshalOptions{}).Unmarshal(b, pm); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (m *matcher) matchRequest(rs ...*Request) bool {
