@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.23.0](https://github.com/k1LoW/grpcstub/compare/v0.22.7...v0.23.0) - 2024-07-24
+### New Features 🎉
+- Add MarshalProtoMessage / UnmarshalProtoMessage to grpcstub by @k1LoW in https://github.com/k1LoW/grpcstub/pull/112
+### Other Changes
+- Update go and mod by @k1LoW in https://github.com/k1LoW/grpcstub/pull/113
+
 ## [v0.22.7](https://github.com/k1LoW/grpcstub/compare/v0.22.6...v0.22.7) - 2024-07-08
 ### Other Changes
 - chore(deps): bump the dependencies group with 2 updates by @dependabot in https://github.com/k1LoW/grpcstub/pull/108
