@@ -204,6 +204,7 @@ func NewServer(t TB, protopath string, opts ...Option) *Server {
 
 // NewTLSServer returns a new server with registered secure *grpc.Server
 func NewTLSServer(t TB, protopath string, cacert, cert, key []byte, opts ...Option) *Server {
+	t.Helper()
 	opts = append(opts, UseTLS(cacert, cert, key))
 	return NewServer(t, protopath, opts...)
 }
