@@ -21,6 +21,9 @@ jobs:
         with:
           go-version-file: go.mod
 
+      - name: Check oldstable
+        uses: k1LoW/oldstable@v1
+
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
 
@@ -31,6 +34,7 @@ jobs:
         uses: reviewdog/action-golangci-lint@v2
         with:
           fail_on_error: true
+          go_version_file: go.mod
           golangci_lint_flags: --timeout=5m
 
       - name: Run tests
