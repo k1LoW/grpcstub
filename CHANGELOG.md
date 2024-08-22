@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.23.1](https://github.com/k1LoW/grpcstub/compare/v0.23.0...v0.23.1) - 2024-08-22
+### Other Changes
+- Set oldstable by @k1LoW in https://github.com/k1LoW/grpcstub/pull/116
+- chore(deps): bump golang.org/x/net from 0.27.0 to 0.28.0 in the dependencies group by @dependabot in https://github.com/k1LoW/grpcstub/pull/115
+
 ## [v0.23.0](https://github.com/k1LoW/grpcstub/compare/v0.22.7...v0.23.0) - 2024-07-24
 ### New Features 🎉
 - Add MarshalProtoMessage / UnmarshalProtoMessage to grpcstub by @k1LoW in https://github.com/k1LoW/grpcstub/pull/112
