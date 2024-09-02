@@ -6,7 +6,7 @@ require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.34.2-20240717164558-a6c49f84cc0f.2
 	connectrpc.com/connect v1.16.2
 	github.com/bmatcuk/doublestar/v4 v4.6.1
-	github.com/bufbuild/protocompile v0.14.0
+	github.com/bufbuild/protocompile v0.14.1
 	github.com/google/go-cmp v0.6.0
 	github.com/jaswdr/faker v1.19.1
 	github.com/jhump/protoreflect/v2 v2.0.0-20230705224148-00680b949112
@@ -15,7 +15,7 @@ require (
 	github.com/minio/pkg v1.7.5
 	github.com/tenntenn/golden v0.5.4
 	golang.org/x/net v0.28.0
-	google.golang.org/grpc v1.65.0
+	google.golang.org/grpc v1.66.0
 	google.golang.org/protobuf v1.34.2
 )
 
