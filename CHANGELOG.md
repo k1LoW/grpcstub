@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.24.1](https://github.com/k1LoW/grpcstub/compare/v0.24.0...v0.24.1) - 2024-10-07
+### Other Changes
+- chore(deps): bump the dependencies group with 2 updates by @dependabot in https://github.com/k1LoW/grpcstub/pull/123
+
 ## [v0.24.0](https://github.com/k1LoW/grpcstub/compare/v0.23.1...v0.24.0) - 2024-09-22
 ### Other Changes
 - chore(deps): bump the dependencies group with 2 updates by @dependabot in https://github.com/k1LoW/grpcstub/pull/117
