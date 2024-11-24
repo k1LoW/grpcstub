@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.25.0](https://github.com/k1LoW/grpcstub/compare/v0.24.1...v0.25.0) - 2024-11-24
+### New Features 🎉
+- Add Prepend() for prepending mathcher by @k1LoW in https://github.com/k1LoW/grpcstub/pull/128
+### Other Changes
+- chore(deps): bump the dependencies group across 1 directory with 5 updates by @dependabot in https://github.com/k1LoW/grpcstub/pull/127
+
 ## [v0.24.1](https://github.com/k1LoW/grpcstub/compare/v0.24.0...v0.24.1) - 2024-10-07
 ### Other Changes
 - chore(deps): bump the dependencies group with 2 updates by @dependabot in https://github.com/k1LoW/grpcstub/pull/123
