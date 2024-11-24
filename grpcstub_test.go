@@ -804,3 +804,51 @@ func TestUnmarshalProtoMessage(t *testing.T) {
 		t.Errorf("got %v\nwant %v", got, want)
 	}
 }
+
+func TestPrepend(t *testing.T) {
+	t.Run("Default", func(t *testing.T) {
+		ctx := context.Background()
+		ts := NewServer(t, "testdata/route_guide.proto")
+		t.Cleanup(func() {
+			ts.Close()
+		})
+		ts.Service("routeguide.RouteGuide").Response(map[string]any{"name": "hello"})
+		ts.Service("routeguide.RouteGuide").Response(map[string]any{"name": "world"})
+
+		client := routeguide.NewRouteGuideClient(ts.Conn())
+		res, err := client.GetFeature(ctx, &routeguide.Point{
+			Latitude:  10,
+			Longitude: 13,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		got := res.Name
+		if want := "hello"; got != want {
+			t.Errorf("got %v\nwant %v", got, want)
+		}
+	})
+
+	t.Run("Prepend", func(t *testing.T) {
+		ctx := context.Background()
+		ts := NewServer(t, "testdata/route_guide.proto")
+		t.Cleanup(func() {
+			ts.Close()
+		})
+		ts.Service("routeguide.RouteGuide").Response(map[string]any{"name": "hello"})
+		ts.Prepend().Service("routeguide.RouteGuide").Response(map[string]any{"name": "world"})
+
+		client := routeguide.NewRouteGuideClient(ts.Conn())
+		res, err := client.GetFeature(ctx, &routeguide.Point{
+			Latitude:  10,
+			Longitude: 13,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		got := res.Name
+		if want := "world"; got != want {
+			t.Errorf("got %v\nwant %v", got, want)
+		}
+	})
+}

@@ -134,6 +134,7 @@ type Server struct {
 	healthCheck       bool
 	disableReflection bool
 	status            serverStatus
+	prependOnce       bool
 	t                 TB
 	mu                sync.RWMutex
 }
@@ -326,7 +327,7 @@ func (s *Server) Match(fn func(req *Request) bool) *matcher {
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.matchers = append(s.matchers, m)
+	s.addMatcher(m)
 	return m
 }
 
@@ -347,7 +348,7 @@ func (s *Server) Service(service string) *matcher {
 		matchFuncs: []matchFunc{fn},
 		t:          s.t,
 	}
-	s.matchers = append(s.matchers, m)
+	s.addMatcher(m)
 	return m
 }
 
@@ -379,7 +380,7 @@ func (s *Server) Method(method string) *matcher {
 		matchFuncs: []matchFunc{fn},
 		t:          s.t,
 	}
-	s.matchers = append(s.matchers, m)
+	s.addMatcher(m)
 	return m
 }
 
@@ -517,6 +518,13 @@ func (s *Server) ClearMatchers() {
 	s.matchers = nil
 }
 
+func (s *Server) Prepend() *Server {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.prependOnce = true
+	return s
+}
+
 // ClearRequests clear requests.
 func (s *Server) ClearRequests() {
 	s.requests = nil
@@ -528,6 +536,15 @@ func (m *matcher) Requests() []*Request {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	return m.requests
+}
+
+func (s *Server) addMatcher(m *matcher) {
+	if s.prependOnce {
+		s.matchers = append([]*matcher{m}, s.matchers...)
+		s.prependOnce = false
+		return
+	}
+	s.matchers = append(s.matchers, m)
 }
 
 func (s *Server) registerServer() {
