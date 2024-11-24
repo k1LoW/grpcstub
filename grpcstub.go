@@ -518,6 +518,7 @@ func (s *Server) ClearMatchers() {
 	s.matchers = nil
 }
 
+// Prepend prepend matcher.
 func (s *Server) Prepend() *Server {
 	s.mu.Lock()
 	defer s.mu.Unlock()

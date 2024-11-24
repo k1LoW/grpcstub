@@ -814,6 +814,7 @@ func TestPrepend(t *testing.T) {
 		})
 		ts.Service("routeguide.RouteGuide").Response(map[string]any{"name": "hello"})
 		ts.Service("routeguide.RouteGuide").Response(map[string]any{"name": "world"})
+		ts.Service("routeguide.RouteGuide").Response(map[string]any{"name": "!!!"})
 
 		client := routeguide.NewRouteGuideClient(ts.Conn())
 		res, err := client.GetFeature(ctx, &routeguide.Point{
@@ -837,6 +838,7 @@ func TestPrepend(t *testing.T) {
 		})
 		ts.Service("routeguide.RouteGuide").Response(map[string]any{"name": "hello"})
 		ts.Prepend().Service("routeguide.RouteGuide").Response(map[string]any{"name": "world"})
+		ts.Service("routeguide.RouteGuide").Response(map[string]any{"name": "!!!"})
 
 		client := routeguide.NewRouteGuideClient(ts.Conn())
 		res, err := client.GetFeature(ctx, &routeguide.Point{
