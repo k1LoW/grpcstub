@@ -3,7 +3,7 @@ module github.com/k1LoW/grpcstub
 go 1.22.8
 
 require (
-	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.35.2-20241127180247-a33202765966.1
+	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.0-20241127180247-a33202765966.1
 	connectrpc.com/connect v1.17.0
 	github.com/bmatcuk/doublestar/v4 v4.7.1
 	github.com/bufbuild/protocompile v0.14.1
@@ -14,9 +14,9 @@ require (
 	github.com/k1LoW/protoresolv v0.1.2
 	github.com/minio/pkg v1.7.5
 	github.com/tenntenn/golden v0.5.4
-	golang.org/x/net v0.32.0
-	google.golang.org/grpc v1.69.0
-	google.golang.org/protobuf v1.35.2
+	golang.org/x/net v0.33.0
+	google.golang.org/grpc v1.69.2
+	google.golang.org/protobuf v1.36.0
 )
 
 require (
