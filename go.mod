@@ -10,8 +10,8 @@ require (
 	github.com/google/go-cmp v0.6.0
 	github.com/jaswdr/faker v1.19.1
 	github.com/jhump/protoreflect/v2 v2.0.0-beta.2
-	github.com/k1LoW/bufresolv v0.7.6
-	github.com/k1LoW/protoresolv v0.1.3
+	github.com/k1LoW/bufresolv v0.7.7
+	github.com/k1LoW/protoresolv v0.1.4
 	github.com/minio/pkg v1.7.5
 	github.com/tenntenn/golden v0.5.4
 	golang.org/x/net v0.34.0
