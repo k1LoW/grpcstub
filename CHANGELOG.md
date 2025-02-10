@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.25.7](https://github.com/k1LoW/grpcstub/compare/v0.25.6...v0.25.7) - 2025-02-10
+### Other Changes
+- chore(deps): bump the dependencies group across 1 directory with 3 updates by @dependabot in https://github.com/k1LoW/grpcstub/pull/146
+
 ## [v0.25.6](https://github.com/k1LoW/grpcstub/compare/v0.25.5...v0.25.6) - 2025-01-29
 ### Other Changes
 - chore(deps): bump the dependencies group with 6 updates by @dependabot in https://github.com/k1LoW/grpcstub/pull/143
