@@ -1,6 +1,6 @@
 module github.com/k1LoW/grpcstub
 
-go 1.22.8
+go 1.23.6
 
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.5-20250130201111-63bb56e20495.1
