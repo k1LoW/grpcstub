@@ -1,6 +1,7 @@
 module github.com/k1LoW/grpcstub
 
 go 1.23.6
+
 toolchain go1.24.1
 
 require (
@@ -12,11 +13,11 @@ require (
 	github.com/jaswdr/faker v1.19.1
 	github.com/jhump/protoreflect/v2 v2.0.0-beta.2
 	github.com/k1LoW/bufresolv v0.7.8
-	github.com/k1LoW/protoresolv v0.1.6
+	github.com/k1LoW/protoresolv v0.1.7
 	github.com/minio/pkg v1.7.5
 	github.com/tenntenn/golden v0.5.4
 	golang.org/x/net v0.38.0
-	google.golang.org/grpc v1.71.0
+	google.golang.org/grpc v1.71.1
 	google.golang.org/protobuf v1.36.6
 )
 
