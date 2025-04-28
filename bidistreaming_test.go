@@ -51,7 +51,7 @@ func TestBidiStreaming(t *testing.T) {
 	c := 0
 	recvCount := 0
 	var sendEnd, recvEnd bool
-	for !(sendEnd && recvEnd) {
+	for !sendEnd || !recvEnd {
 		if !sendEnd {
 			if err := stream.SendMsg(&routeguide.RouteNote{
 				Message: fmt.Sprintf("hello from client[%d]", c),
