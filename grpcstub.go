@@ -994,7 +994,7 @@ func (s *Server) resolveProtos(ctx context.Context, c *config) error {
 func registerFiles(fds linker.Files) (err error) {
 	for _, fd := range fds {
 		// Skip registration of already registered descriptors
-		if _, err := protoregistry.GlobalFiles.FindFileByPath(fd.Path()); !errors.Is(protoregistry.NotFound, err) {
+		if _, err := protoregistry.GlobalFiles.FindFileByPath(fd.Path()); !errors.Is(err, protoregistry.NotFound) {
 			continue
 		}
 		// Skip registration of conflicted descriptors
