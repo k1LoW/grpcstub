@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.25.10](https://github.com/k1LoW/grpcstub/compare/v0.25.9...v0.25.10) - 2025-06-03
+### Other Changes
+- chore(deps): bump golang.org/x/net from 0.39.0 to 0.40.0 in the dependencies group by @dependabot in https://github.com/k1LoW/grpcstub/pull/158
+- chore(deps): bump google.golang.org/grpc from 1.72.0 to 1.72.1 in the dependencies group by @dependabot in https://github.com/k1LoW/grpcstub/pull/160
+- chore(deps): bump google.golang.org/grpc from 1.72.1 to 1.72.2 in the dependencies group by @dependabot in https://github.com/k1LoW/grpcstub/pull/161
+
 ## [v0.25.9](https://github.com/k1LoW/grpcstub/compare/v0.25.8...v0.25.9) - 2025-04-28
 ### Other Changes
 - chore(deps): bump the dependencies group with 3 updates by @dependabot in https://github.com/k1LoW/grpcstub/pull/152
