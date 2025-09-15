@@ -1,5 +1,15 @@
 # Changelog
 
+## [v0.25.12](https://github.com/k1LoW/grpcstub/compare/v0.25.11...v0.25.12) - 2025-09-15
+### Other Changes
+- chore(deps): bump buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go from 1.36.6-20250603165357-b52ab10f4468.1 to 1.36.6-20250613105001-9f2d3c737feb.1 in the dependencies group by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/164
+- chore(deps): bump github.com/k1LoW/bufresolv from 0.7.8 to 0.7.9 in the dependencies group by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/166
+- chore(deps): bump buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go from 1.36.6-20250613105001-9f2d3c737feb.1 to 1.36.6-20250625184727-c923a0c2a132.1 in the dependencies group by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/167
+- chore(deps): bump the dependencies group across 1 directory with 3 updates by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/169
+- chore(deps): bump the dependencies group with 2 updates by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/170
+- chore(deps): bump the dependencies group with 3 updates by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/171
+- chore(deps): bump the dependencies group across 1 directory with 4 updates by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/175
+
 ## [v0.25.11](https://github.com/k1LoW/grpcstub/compare/v0.25.10...v0.25.11) - 2025-06-09
 ### Other Changes
 - chore(deps): bump the dependencies group with 4 updates by @dependabot in https://github.com/k1LoW/grpcstub/pull/162
