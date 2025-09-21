@@ -28,8 +28,8 @@ github.com/josharian/txtarfs v0.0.0-20240408113805-5dc76b8fe6bf h1:ZWuoyLMwZvLJ6
 github.com/josharian/txtarfs v0.0.0-20240408113805-5dc76b8fe6bf/go.mod h1:UbC32ft9G/jG+sZI8wLbIBNIrYr7vp/yqMDa9SxVBNA=
 github.com/k1LoW/bufresolv v0.7.9 h1:E1cd7z9xYtVa6Cg5VczA36Dica0/s1rBVtZfqR0brTU=
 github.com/k1LoW/bufresolv v0.7.9/go.mod h1:m7HRk2zRXpWcDxyhDUKFQvtzFglku+XkrULZ36v2V4Q=
-github.com/k1LoW/protoresolv v0.1.7 h1:jlKBERyIM20s/S9pk2DbOnqrSU5hpGSTA7qG5jV0Oqc=
-github.com/k1LoW/protoresolv v0.1.7/go.mod h1:QOhK9xINLO15vlemgzJJ0HKfhWx1U+dci6d1LuR7+nw=
+github.com/k1LoW/protoresolv v0.1.8 h1:9XXxLRzJPPuq+Hrr7opwLSKQb+IVhUd/WaT/zrp0urM=
+github.com/k1LoW/protoresolv v0.1.8/go.mod h1:dO3kmLTwfhbcjjNmgZpg6Swti1i0KMjYqXxY/Fv8lU0=
 github.com/kr/pretty v0.3.0 h1:WgNl7dwNpEZ6jJ9k1snq4pZsg7DOEN8hP9Xw0Tsjwk0=
 github.com/kr/pretty v0.3.0/go.mod h1:640gp4NfQd8pI5XOwp5fnNeVWj67G7CFk/SaSQn7NBk=
 github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=
