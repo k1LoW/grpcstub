@@ -4,14 +4,14 @@ go 1.24.0
 
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.9-20250912141014-52f32327d4b0.1
-	connectrpc.com/connect v1.18.1
+	connectrpc.com/connect v1.19.0
 	github.com/bmatcuk/doublestar/v4 v4.9.1
 	github.com/bufbuild/protocompile v0.14.1
 	github.com/google/go-cmp v0.7.0
 	github.com/jaswdr/faker v1.19.1
 	github.com/jhump/protoreflect/v2 v2.0.0-beta.2
 	github.com/k1LoW/bufresolv v0.7.9
-	github.com/k1LoW/protoresolv v0.1.7
+	github.com/k1LoW/protoresolv v0.1.8
 	github.com/minio/pkg v1.7.5
 	github.com/tenntenn/golden v0.5.5
 	golang.org/x/net v0.44.0
