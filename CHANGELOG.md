@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.26.0](https://github.com/k1LoW/grpcstub/compare/v0.25.12...v0.26.0) - 2025-10-08
+### Other Changes
+- chore(deps): bump the dependencies group across 1 directory with 4 updates by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/178
+- chore(deps): bump the dependencies group across 1 directory with 2 updates by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/174
+- fix: use go-wildcard instead by @k1LoW in https://github.com/k1LoW/grpcstub/pull/179
+
 ## [v0.25.12](https://github.com/k1LoW/grpcstub/compare/v0.25.11...v0.25.12) - 2025-09-15
 ### Other Changes
 - chore(deps): bump buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go from 1.36.6-20250603165357-b52ab10f4468.1 to 1.36.6-20250613105001-9f2d3c737feb.1 in the dependencies group by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/164
