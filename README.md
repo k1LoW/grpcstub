@@ -1,3 +1,8 @@
+> [!CAUTION]
+> **Correction of Licensing Error and Request for Action**<br>
+> **Please upgrade version to v0.26.0 or later**<br>
+> For details, see https://github.com/k1LoW/grpcstub/issues/182
+
 # grpcstub [![Go Reference](https://pkg.go.dev/badge/github.com/k1LoW/grpcstub.svg)](https://pkg.go.dev/github.com/k1LoW/grpcstub) ![Coverage](https://raw.githubusercontent.com/k1LoW/octocovs/main/badges/k1LoW/grpcstub/coverage.svg) ![Code to Test Ratio](https://raw.githubusercontent.com/k1LoW/octocovs/main/badges/k1LoW/grpcstub/ratio.svg) ![Test Execution Time](https://raw.githubusercontent.com/k1LoW/octocovs/main/badges/k1LoW/grpcstub/time.svg)
 
 grpcstub provides gRPC server and client conn ( `*grpc.ClientConn` ) for stubbing, for testing in Go.
