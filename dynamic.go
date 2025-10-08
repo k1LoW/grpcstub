@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
+	wildcard "github.com/IGLOU-EU/go-wildcard/v2"
 	"github.com/jaswdr/faker"
-	"github.com/minio/pkg/wildcard"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -21,7 +21,7 @@ type generators []*generator
 
 func (gs generators) matchFunc(name string) (GenerateFunc, bool) {
 	for _, g := range gs {
-		if wildcard.MatchSimple(g.pattern, name) {
+		if wildcard.Match(g.pattern, name) {
 			return g.fn, true
 		}
 	}
