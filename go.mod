@@ -14,7 +14,7 @@ require (
 	github.com/k1LoW/bufresolv v0.7.9
 	github.com/k1LoW/protoresolv v0.1.8
 	github.com/tenntenn/golden v0.5.5
-	golang.org/x/net v0.45.0
+	golang.org/x/net v0.46.0
 	google.golang.org/grpc v1.76.0
 	google.golang.org/protobuf v1.36.10
 )
@@ -24,9 +24,9 @@ require (
 	github.com/josharian/txtarfs v0.0.0-20240408113805-5dc76b8fe6bf // indirect
 	github.com/kr/text v0.2.0 // indirect
 	golang.org/x/sync v0.17.0 // indirect
-	golang.org/x/sys v0.36.0 // indirect
-	golang.org/x/text v0.29.0 // indirect
-	golang.org/x/tools v0.36.0 // indirect
+	golang.org/x/sys v0.37.0 // indirect
+	golang.org/x/text v0.30.0 // indirect
+	golang.org/x/tools v0.37.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250804133106-a7a43d27e69b // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
