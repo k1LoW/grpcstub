@@ -30,3 +30,6 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250804133106-a7a43d27e69b // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+// Licensing error. ref: https://github.com/k1LoW/grpcstub/issues/182
+retract [v0.8.0, v0.25.12]
