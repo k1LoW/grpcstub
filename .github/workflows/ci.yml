@@ -22,7 +22,7 @@ jobs:
           go-version-file: go.mod
 
       - name: Check oldstable
-        uses: k1LoW/oldstable@v1
+        uses: k1LoW/oldstable@v2
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
