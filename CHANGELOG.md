@@ -1,5 +1,14 @@
 # Changelog
 
+## [v0.26.2](https://github.com/k1LoW/grpcstub/compare/v0.26.1...v0.26.2) - 2025-12-29
+### Other Changes
+- chore: setup tagpr labels by @k1LoW in https://github.com/k1LoW/grpcstub/pull/186
+- chore(deps): bump k1LoW/oldstable from 1 to 2 in the dependencies group by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/188
+- chore(deps): bump actions/checkout from 5 to 6 in the dependencies group by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/191
+- chore(deps): bump the dependencies group across 1 directory with 2 updates by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/190
+- chore(deps): bump the dependencies group with 3 updates by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/192
+- chore(deps): bump the dependencies group across 1 directory with 2 updates by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/194
+
 ## [v0.26.1](https://github.com/k1LoW/grpcstub/compare/v0.26.0...v0.26.1) - 2025-10-14
 ### Other Changes
 - chore(deps): bump golang.org/x/net from 0.45.0 to 0.46.0 in the dependencies group by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/184
