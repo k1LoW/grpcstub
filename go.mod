@@ -6,7 +6,7 @@ require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.11-20251209175733-2a1774d88802.1
 	connectrpc.com/connect v1.19.1
 	github.com/IGLOU-EU/go-wildcard/v2 v2.1.0
-	github.com/bmatcuk/doublestar/v4 v4.9.1
+	github.com/bmatcuk/doublestar/v4 v4.9.2
 	github.com/bufbuild/protocompile v0.14.1
 	github.com/google/go-cmp v0.7.0
 	github.com/jaswdr/faker v1.19.1
