@@ -1,5 +1,12 @@
 # Changelog
 
+## [v0.26.3](https://github.com/k1LoW/grpcstub/compare/v0.26.2...v0.26.3) - 2026-03-19
+### Other Changes
+- chore(deps): bump golang.org/x/net from 0.48.0 to 0.49.0 in the dependencies group by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/196
+- chore(deps): bump github.com/bmatcuk/doublestar/v4 from 4.9.2 to 4.10.0 in the dependencies group by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/198
+- chore(deps): bump the dependencies group with 3 updates by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/199
+- chore(deps): bump google.golang.org/grpc from 1.78.0 to 1.79.3 by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/200
+
 ## [v0.26.2](https://github.com/k1LoW/grpcstub/compare/v0.26.1...v0.26.2) - 2026-01-12
 ### Other Changes
 - chore: setup tagpr labels by @k1LoW in https://github.com/k1LoW/grpcstub/pull/186
