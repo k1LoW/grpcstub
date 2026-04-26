@@ -1,5 +1,13 @@
 # Changelog
 
+## [v0.26.4](https://github.com/k1LoW/grpcstub/compare/v0.26.3...v0.26.4) - 2026-04-26
+### Other Changes
+- chore(deps): bump golang.org/x/net from 0.50.0 to 0.52.0 in the dependencies group by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/201
+- chore(deps): bump google.golang.org/grpc from 1.79.3 to 1.80.0 in the dependencies group by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/203
+- chore(deps): bump golang.org/x/net from 0.52.0 to 0.53.0 in the dependencies group by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/204
+- chore(deps): bump buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go from 1.36.11-20260209202127-80ab13bee0bf.1 to 1.36.11-20260415201107-50325440f8f2.1 in the dependencies group by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/205
+- chore(deps): bump connectrpc.com/connect from 1.19.1 to 1.19.2 in the dependencies group by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/206
+
 ## [v0.26.3](https://github.com/k1LoW/grpcstub/compare/v0.26.2...v0.26.3) - 2026-03-19
 ### Other Changes
 - chore(deps): bump golang.org/x/net from 0.48.0 to 0.49.0 in the dependencies group by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/196
