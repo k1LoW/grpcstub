@@ -4,8 +4,8 @@ go 1.25.11
 
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.11-20260415201107-50325440f8f2.1
-	connectrpc.com/connect v1.19.2
-	github.com/IGLOU-EU/go-wildcard/v2 v2.1.0
+	connectrpc.com/connect v1.20.0
+	github.com/IGLOU-EU/go-wildcard/v2 v2.1.1
 	github.com/bmatcuk/doublestar/v4 v4.10.0
 	github.com/bufbuild/protocompile v0.14.1
 	github.com/google/go-cmp v0.7.0
@@ -14,7 +14,7 @@ require (
 	github.com/k1LoW/bufresolv v0.7.10
 	github.com/k1LoW/protoresolv v0.1.8
 	github.com/tenntenn/golden v0.5.5
-	golang.org/x/net v0.54.0
+	golang.org/x/net v0.55.0
 	google.golang.org/grpc v1.81.1
 	google.golang.org/protobuf v1.36.11
 )
@@ -24,7 +24,7 @@ require (
 	github.com/josharian/txtarfs v0.0.0-20240408113805-5dc76b8fe6bf // indirect
 	github.com/kr/text v0.2.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
-	golang.org/x/sys v0.44.0 // indirect
+	golang.org/x/sys v0.45.0 // indirect
 	golang.org/x/text v0.37.0 // indirect
 	golang.org/x/tools v0.44.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260226221140-a57be14db171 // indirect
