@@ -1,5 +1,14 @@
 # Changelog
 
+## [v0.26.5](https://github.com/k1LoW/grpcstub/compare/v0.26.4...v0.26.5) - 2026-07-26
+
+### Other Changes
+- chore(deps): bump actions/checkout from 6.0.3 to 7.0.0 in the dependencies group across 1 directory by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/210
+- chore(deps): bump the dependencies group with 3 updates by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/209
+- chore(deps): bump the dependencies group across 1 directory with 3 updates by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/215
+- chore(deps): bump the dependencies group across 1 directory with 3 updates by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/218
+- chore(deps): bump google.golang.org/grpc from 1.82.0 to 1.82.1 by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/217
+
 ## [v0.26.4](https://github.com/k1LoW/grpcstub/compare/v0.26.3...v0.26.4) - 2026-05-18
 ### Other Changes
 - chore(deps): bump golang.org/x/net from 0.50.0 to 0.52.0 in the dependencies group by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/201
