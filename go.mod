@@ -3,7 +3,7 @@ module github.com/k1LoW/grpcstub
 go 1.25.11
 
 require (
-	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.11-20260709200747-435963d16310.1
+	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.12-20260709200747-435963d16310.1
 	connectrpc.com/connect v1.20.0
 	github.com/IGLOU-EU/go-wildcard/v2 v2.1.1
 	github.com/bmatcuk/doublestar/v4 v4.10.0
@@ -14,9 +14,9 @@ require (
 	github.com/k1LoW/bufresolv v0.7.10
 	github.com/k1LoW/protoresolv v0.1.8
 	github.com/tenntenn/golden v0.5.5
-	golang.org/x/net v0.57.0
-	google.golang.org/grpc v1.82.1
-	google.golang.org/protobuf v1.36.11
+	golang.org/x/net v0.58.0
+	google.golang.org/grpc v1.83.0
+	google.golang.org/protobuf v1.36.12
 )
 
 require (
@@ -25,9 +25,9 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
-	golang.org/x/text v0.40.0 // indirect
-	golang.org/x/tools v0.47.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260414002931-afd174a4e478 // indirect
+	golang.org/x/text v0.41.0 // indirect
+	golang.org/x/tools v0.48.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260526163538-3dc84a4a5aaa // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
