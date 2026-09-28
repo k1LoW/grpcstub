@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.26.6](https://github.com/k1LoW/grpcstub/compare/v0.26.5...v0.26.6) - 2026-09-28
+
+### Other Changes
+- ci: generate CREDITS with gocredits v1.0.0 from a make target by @k1LoW in https://github.com/k1LoW/grpcstub/pull/226
+
 ## [v0.26.5](https://github.com/k1LoW/grpcstub/compare/v0.26.4...v0.26.5) - 2026-07-26
 
 ### Other Changes
