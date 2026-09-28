@@ -10,7 +10,6 @@ lint:
 
 depsdev:
 	go install github.com/Songmu/ghch/cmd/ghch@latest
-	go install github.com/Songmu/gocredits/cmd/gocredits@latest
 	go install github.com/securego/gosec/v2/cmd/gosec@latest
 	go install github.com/bufbuild/buf/cmd/buf@latest
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
@@ -31,21 +30,25 @@ cert:
 	openssl x509 -req -sha256 -in testdata/csr.pem -days 60 -CA testdata/cacert.pem -CAkey testdata/cakey.pem -CAcreateserial -out testdata/cert.pem -extfile testdata/openssl.cnf
 	openssl verify -CAfile testdata/cacert.pem testdata/cert.pem
 
+credits:
+	go install github.com/Songmu/gocredits/cmd/gocredits@v1.0.0
+	gocredits . > CREDITS
+
 prerelease:
 	git pull origin main --tag
 	go mod tidy
 	ghch -w -N ${VER}
-	gocredits -w .
+	$(MAKE) credits
 	git add CHANGELOG.md CREDITS go.mod go.sum
 	git commit -m'Bump up version number'
 	git tag ${VER}
 
-prerelease_for_tagpr: depsdev
+prerelease_for_tagpr:
 	go mod tidy
-	gocredits -w .
+	$(MAKE) credits
 	git add CHANGELOG.md CREDITS go.mod go.sum
 
 release:
 	git push origin main --tag
 
-.PHONY: default test
+.PHONY: default test credits
