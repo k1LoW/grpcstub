@@ -1,5 +1,13 @@
 # Changelog
 
+## [v0.26.6](https://github.com/k1LoW/grpcstub/compare/v0.26.5...v0.26.6) - 2026-11-18
+
+### Other Changes
+- ci: generate CREDITS with gocredits v1.0.0 from a make target by @k1LoW in https://github.com/k1LoW/grpcstub/pull/226
+- chore(deps): bump google.golang.org/grpc from 1.82.1 to 1.83.1 by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/223
+- chore(deps): bump the dependencies group across 1 directory with 4 updates by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/229
+- chore(deps): bump google.golang.org/grpc from 1.83.1 to 1.83.2 by @dependabot[bot] in https://github.com/k1LoW/grpcstub/pull/231
+
 ## [v0.26.5](https://github.com/k1LoW/grpcstub/compare/v0.26.4...v0.26.5) - 2026-07-26
 
 ### Other Changes
